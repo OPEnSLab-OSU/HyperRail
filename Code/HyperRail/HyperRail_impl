@@ -1,0 +1,439 @@
+/*
+ *Openly Published Environmental Sensing Lab
+ *Oregon State University
+ *Written by: Manuel Lopez 
+ *Summer 2017
+ *This code was based off Sparkfun's Big Easy Driver Basic Demo code
+ *https://github.com/sparkfun/Big_Easy_Driver
+ *
+ *
+ *This system's default will be 1/16 microstepping or 6400 steps per revolution
+ *using  a 0.9degree/step motor 
+ */
+
+//Declare pin functions on Arduino
+#define stp 2
+#define dir 3
+#define MS1 4
+#define MS2 5
+#define MS3 6
+#define EN  7
+
+//Declare variable for functions
+char user_input;
+String inString = " "; // string to hold input
+float path_length = 0; // length of rail in meters
+float spool_radius = 0;// Radius of the spool that is holding the line
+long total_steps = 0; //Total steps calculated to move all the way down the length of the rail.
+long x = 0;//counting variable 
+bool entered_numberLength = false;//Flag variable to check whether or not the input was a number and not a word
+bool entered_numberRadius = false;//Flag variable to check whether or not hte input was a nubmer and not a word
+bool entered_RPM = false;//Flag variable to check whether or not hte input was a nubmer and not a word
+float RPM_HyperRail = 0;//This variable will be used to store the rpm of the systme after it is converted in the rpmtodelay function
+int delay_time = 0;
+
+void setup() {
+  pinMode(stp, OUTPUT);
+  pinMode(dir, OUTPUT);
+  pinMode(MS1, OUTPUT);
+  pinMode(MS2, OUTPUT);
+  pinMode(MS3, OUTPUT);
+  pinMode(EN, OUTPUT);
+  resetBEDPins(); //Set step, direction, microstep and enable pins to default states
+  Serial.begin(9600); //Open Serial connection for debugging
+  Serial.println("OPEnS Lab HyperRails");
+
+  //Comment the next line to run without serial monitor
+  while(!Serial){
+    ;//Do nothing. Just wait for the user to open the serial monitor.
+  }
+
+  path_length = get_RailLength();
+  spool_radius = get_RadiusLength();
+  total_steps = stepsper_length(path_length,spool_radius);
+  
+  //Serial.print("Path_length: ");//for testing
+  //Serial.println(path_length);//for testing
+  //Serial.print("spool_radius: ");//for testing
+  //Serial.println(spool_radius);//for testing
+  Serial.print("These are total_steps: ");// for testing
+  Serial.println(total_steps);//for testing
+
+  RPM_HyperRail = get_RPM();
+  delay_time = RPM_to_time(RPM_HyperRail);
+  //Serial.print("This is the delay time: " );// for testing
+  //Serial.println(delay_time);// for testing
+
+  //Print function list for user selection
+  Serial.println("\nEnter number for control option:");
+  Serial.println("1. Travel the HyperRail to the end and back.");
+  Serial.println("2. Go to the end of the HyperRail.");
+  Serial.println("3. Go back to the start of the HyperRail.");
+  Serial.println("4. Nothing, yet. ");
+  Serial.println();
+}
+
+//Main loop
+void loop(){
+//delay(3000);//for testing
+//Serial.print("This is what is the value of Serial.available(): " );//for testing
+//Serial.println(Serial.available());//for testing
+
+  while(Serial.available() >= 2){
+      //Serial.println("This is what is stored in \"user_input\" before the read : " );// for testing
+      //Serial.println(user_input);//for testing
+      user_input = Serial.read(); //Read user input and trigger appropriate function
+      //Serial.println("This is what is stored in \"user_input\" after the read : " );//for testing
+      //Serial.println(user_input);//for testing
+      digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control
+      if(user_input == '1'){
+        travelHyperRail(total_steps,delay_time);
+        user_input = Serial.read();//This will clear the buffer
+      }else if(user_input == '2'){
+        StepForwardDefault(total_steps,delay_time);
+        user_input = Serial.read();//This will clear the buffer
+      }else if(user_input == '3'){
+        StepBackwardDefault(total_steps,delay_time);
+        user_input = Serial.read();//This will clear the buffer
+      }else{
+        Serial.println("Invalid input");
+      }
+      //Serial.print("This is what is the value of Serial.available() after if statments: " );//for testing
+      //Serial.println(Serial.available());//for testing
+   
+      delay(1000);//Making sure it stops completeley before cutting current to motor.s
+      resetBEDPins();
+  }
+}
+
+
+ /******************* Function: resetBEDPins()*********************
+  * Description: This function resets the varialbe used for the states back to  
+  *              their original values
+  * Parameters: NONE
+  * Returns: VOID
+  */
+void resetBEDPins()
+{
+  digitalWrite(stp, LOW);
+  digitalWrite(dir, LOW);
+  digitalWrite(MS1, LOW);
+  digitalWrite(MS2, LOW);
+  digitalWrite(MS3, LOW);
+  digitalWrite(EN,HIGH);
+}
+
+ /******************* Function: get_RailLength()*********************
+  * Description: This function will get the length of the HyperRail
+  *              to calculate the steps needed to move the carriage
+  *              all the way down the rail and back to its original position.
+  *              Movement is measured from the front of the carrige plate to the 
+  *              the end location. 
+  * Parameters: NONE
+  * Returns: a float decimal of sathe lenght of the HyperRails length in mm
+  */
+ float get_RailLength()
+ {
+ //Prompts the user to enter the length of HyperRail's actual rolling path 
+ // on which the carriage will run.This number should be in METERS.
+  Serial.println("Enter the length of the path of the carriage in METERS(ex. 1.45): " );
+  float converted_length = 0;// This is the variable that will be returned from the function 
+  int rail_length = 0;//Variable to store the input from the user
+  //Serial.println(converted_length);// For testing 
+  while(entered_numberLength == false){
+    while(Serial.available() > 0){
+      rail_length = Serial.read();
+      //Serial.println("It read input");//for testing
+      if(rail_length != '\n'){
+        inString += (char)rail_length;
+      }else{
+        //Serial.print("Input string: " );
+        //Serial.println(inString);
+        //Serial.print("After conversion to float: " );
+        converted_length = inString.toFloat() * 1000;//<--------------------This is where it actually gets converted
+        
+        if(converted_length == 0)//Checks if converted length is zero. If zero,it means it was a not a #
+        {
+          entered_numberLength = false;// Set flag back to false.
+          inString = " " ;// clear out the memory in the variable
+          Serial.println("You didn't entered a number! Try again.");
+        }else{ // This 'else' will run if the input was a number
+          entered_numberLength = true;
+          inString = " ";//clear out memory in the variable 
+          //Serial.print("You entered: " );// for testing
+          //Serial.println(converted_length);// for testing
+        }
+      }
+        //Serial.println(converted_length);// For testing
+    }
+    //Serial.println(converted_length);// For testing
+    //delay(5000);
+  }
+  //Serial.print("I will be returning: "); //For testing
+  //Serial.print(converted_length);// For testing
+  //Serial.println(" mm.");//for testing
+  
+  return converted_length;// Returns the float value from the function
+   
+ }
+
+
+ /******************* Function: get_RadiusLength()*********************
+  * Description: This fuction will get the diameter of the spool coiling the 
+  *              line.
+  * Parameters: NONE
+  * Returns: a float of the radius of the spool in mm
+  */
+ float get_RadiusLength()
+ {
+  //Serial.println("I made it here!");
+ //Prompts the user to enter the radius of the spool that is rolling the line
+  Serial.println("Enter the radius of the spool in mm (ex. 1.45): " );
+  float converted_length = 0;// This is the variable that will be returned from the function 
+  int radius_length = 0;//Variable to store the input from the user
+  //Serial.println(converted_length);// For testing 
+  while(entered_numberRadius == false){
+    while(Serial.available() > 0){
+      radius_length = Serial.read();
+      if(radius_length != '\n'){
+        inString += (char)radius_length;
+        //Serial.println("I made it here!");//For testing
+        //Serial.println(inString);//for testing
+      }else{
+        //Serial.print("Input string: " );
+        //Serial.println(inString);
+        //Serial.print("After conversion to float: " );
+        converted_length = inString.toFloat();//<--------------------This is where it actually gets converted
+        if(converted_length == 0)//Checks if converted length is zero. If zero,it means it was a not a #
+        {
+          entered_numberRadius = false;// Set flag back to false.
+          inString = " " ;// clear out the memory in the variable
+          Serial.println("You didn't entered a number! Try again.");
+        }else{ // This 'else' will run if the input was a number
+          entered_numberRadius = true;
+          inString = "  ";//Clear out the memory in the variabl
+          //Serial.print("You entered: " );// for testing
+          //Serial.println(converted_length);// for testing
+        }
+      }
+        //Serial.println(converted_length);// For testing
+    }
+    //Serial.println(converted_length);// For testing
+    //delay(5000);
+  }
+  //Serial.print("I will be returning: "); //For testing
+  //Serial.print(converted_length);// For testing
+  //Serial.println(" mm.");//for testing
+  
+  return converted_length;// Returns the float value from the function
+   
+ }
+
+/************************Function: stepsper_length()*****************************
+ *Description:This function will return the total number of steps that will 
+ *            be required to travel the whole length of the rail.
+ * Parameters: 
+ *      -float path_length: is the length of the path that the 
+ *                          carriage will travel
+ *      -spool_radius: is the radius of the spool holding the line 
+ *                     that is running the whole system. 
+ * Note: this system is designed to work with the single spool of 12mm radius. 
+ * Future designs should be able to work we all size radii
+ */
+long stepsper_length(float path_length, float spool_radius)
+{
+  
+  /*Serial.print("This is the path_length: ");//For testing
+  Serial.println(path_length);// for testing
+  Serial.print("This is the spool_radius: " );//for testing
+  Serial.println(spool_radius);//For testing 
+  long steps_numerator = (long)6400 * (long)path_length;// for testing
+  Serial.println(steps_numerator);//for testing*/
+  long steps_total = ( (long)6400 * (long)path_length)/(2 * 3.1415926 * spool_radius); // 6400 steps for 1 rev
+  Serial.print("These are the total steps (inside function): " );//For testing
+  Serial.println(steps_total);//For testing
+  
+
+  return steps_total; //Returns the steps needed for travel
+  
+}
+
+/******************************Function: travelHyperRail()**********************************
+ * Description:This funciton will move the carriage the whole path length forwards and back.
+ * Parameters:
+ *          -RPM?: Revolutions per minute at which the motor will be spinning
+ *          -steps_total: This will be passed from the stepsper_length function. 
+ *                        This number dictates the total number of steps needed to
+ *                        travel the whole rail.
+ * Returns: N/A. It moves the carriage up and down the rail.
+ */
+void travelHyperRail(long steps_total, int delay_time)
+{
+  Serial.println("Traveling the HyperRail!");
+  
+  Serial.print("My delay time is: " );//for testing
+  Serial.println(delay_time);//For testing
+  Serial.print("My total steps are: ");//for testing
+  Serial.println(steps_total);//for testing
+  
+  digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
+  for(x= 1; x<= steps_total; x++)  //Loop the forward stepping enough times for motion to be visible
+  {
+    digitalWrite(stp,HIGH); //Trigger one step forward
+    delayMicroseconds(delay_time);
+    digitalWrite(stp,LOW); //Pull step pin low so it can be triggered again
+    delayMicroseconds(delay_time);
+    //Serial.println(x);
+  }
+
+  //Waits 100 milliseconds before going back the other way
+  delay(500);
+  Serial.println("I made it after the delay before going back");// for testing
+
+  //This for loop will bring the carriage back to 
+  // the orignal postion 
+  digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
+  x=0;
+  for(x = 1; x<= steps_total; x++)
+  {
+    digitalWrite(stp,HIGH);
+    delayMicroseconds(delay_time);
+    digitalWrite(stp,LOW);
+    delayMicroseconds(delay_time);
+    //Serial.println(x);//for testing
+  }
+  Serial.println("Enter new option!");
+}
+
+/***************************** Function: StepForwardDefault()***********************
+ * Description: This function will move the carriage all the way down and stay 
+ *              at the end of the line. NO return.
+ * Parameters: -RPM: The speed at which the motor will be turning 
+ * Return: N/A. This function will only move the carriage forward, returns nothing.
+ * 
+ */
+void StepForwardDefault(long steps_total, int delay_time)
+{
+  Serial.println("\nMoving carriage forward.");
+  
+  Serial.print("My delay time is: " );//for testing
+  Serial.println(delay_time);//For testing
+  Serial.print("My total steps are: ");//for testing
+  Serial.println(steps_total);//for testing
+  
+  digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
+  for(x= 1; x<steps_total; x++)  //Loop the forward stepping enough times for motion to be visible
+  {
+    digitalWrite(stp,HIGH); //Trigger one step forward
+    delayMicroseconds(delay_time);
+    digitalWrite(stp,LOW); //Pull step pin low so it can be triggered again
+    delayMicroseconds(delay_time);
+    //Serial.println(x);
+  }
+  Serial.println("Enter new option");
+}
+
+/***************************** Function: StepBackwardDefault()***********************
+ * Description: This function will move the carriage all the way down and stay 
+ *              at the end of the line. NO return.
+ * Parameters: -RPM: The speed at which the motor will be turning 
+ * Return: N/A. This function will only move the carriage forward, returns nothing.
+ * 
+ */
+void StepBackwardDefault(long steps_total, int delay_time)
+{
+  Serial.println("\nMoving carriage backward.");
+  Serial.print("My delay time is: " );//for testing
+  Serial.println(delay_time);//For testing
+  Serial.print("My total steps are: ");//for testing
+  Serial.println(steps_total);//for testing
+  digitalWrite(dir, HIGH); //Pull direction pin high to move "backward"
+  for(x= 1; x<steps_total; x++)  //Loop the forward stepping enough times for motion to be visible
+  {
+    digitalWrite(stp,HIGH); //Trigger one step forward
+    delayMicroseconds(delay_time);
+    digitalWrite(stp,LOW); //Pull step pin low so it can be triggered again
+    delayMicroseconds(delay_time);
+    //Serial.println(x);
+  }
+  Serial.println("Enter new option");
+}
+
+
+
+
+ /******************* Function: get_RPM*********************
+  * Description: This furnction will get the RPM at which the user wants the HyperRail 
+  *              to move at.
+  * Parameters: NONE
+  * Returns: a float decimal of the int that the user inputed
+  */
+ float get_RPM()
+ {
+ //Prompts the user to enter the desired speed (RPM)
+  Serial.println("Enter the RPM of the motor (ex. 1.45): " );
+  float converted_delay = 0;// This is the variable that will be returned from the function 
+  int user_RPM = 0;//Variable to store the input from the user
+  //Serial.println("I made it here");//For testing
+  while(entered_RPM == false){
+    //Serial.println(entered_RPM);//For testing
+    while(Serial.available() > 0){
+      user_RPM = Serial.read();
+      //Serial.println("It read the input");//for testing
+      if(user_RPM != '\n'){
+        inString += (char)user_RPM;
+        //Serial.println("I made it here!");//For testing
+        //Serial.println(inString);//for testing
+      }else{
+        //Serial.print("Input string: " );
+        //Serial.println(inString);
+        //Serial.print("After conversion to float: " );
+        converted_delay = inString.toFloat();//<--------------------This is where it actually gets converted
+        if(converted_delay == 0)//Checks if converted length is zero. If zero,it means it was a not a #
+        {
+          entered_RPM = false;// Set flag back to false.
+          inString = " " ;// clear out the memory in the variable
+          Serial.println("You didn't entered a number! Try again.");
+        }else{ // This 'else' will run if the input was a number
+          entered_RPM = true;
+          //Serial.println("The value for entered_RPM is : ");//for testing
+          //Serial.println(entered_RPM);//for testing
+          inString = "  ";//Clear out the memory in the variable
+          //Serial.print("You entered: " );// for testing
+          //Serial.println(converted_delay);// for testing
+        }
+      }
+        //Serial.print("The converted_delay is : ");//For testing
+        //Serial.println(converted_delay);// For testing
+    }
+    //Serial.print("The converted_delay is : ");//For testing
+    //Serial.println(converted_delay);// For testing
+    //delay(5000);
+  }
+  
+  return converted_delay;// Returns the float value from the function
+ }
+
+ /************************************ Function: RPMtoTime()*******************************
+ * Description: This function will convert the RPM to the corresponding time required for that speed 
+ * Parameters: 
+              *RPM: This parameter will come from a variable
+ * Return:It will return an int corresponding to the time requried for the input RPM
+ */
+ int RPM_to_time(float rpm)
+ {
+  //Serial.print("This is the value of rpm: " );//for testing
+  //Serial.println(rpm);//for testing 
+  //float denominator = rpm * 6400;//for testing
+  //Serial.print("This is the value of the denominator: " ) ;//for testing
+  //Serial.println(denominator);//for testing
+  float delay_time = (60) /(rpm * (float)6400)* pow(10,6);
+  //float delay_time = 1.0 / rpm;
+  //Serial.print("This is the delay time: " );//for testing
+  //Serial.println(delay_time);//For testing 
+
+  return delay_time;
+ }
+
+
+ 
