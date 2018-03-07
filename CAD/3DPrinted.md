@@ -5,3 +5,4 @@ This folder contains all the links to all the 3D printed pieces used on the Hype
 [Line Tie](http://a360.co/2oWLrj7)  
 [Idling Pully Assembly](http://a360.co/2oWLrj7)   
 [Motor Mount](http://a360.co/2FpC4j6)   
+[Electronics Assembly](http://a360.co/2IaoZfj)   
