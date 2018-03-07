@@ -1,4 +1,4 @@
-This folder contains all the links to all the 3D printed pieces used on the HyperRail: 
+This folder contains all the links to all the 3D printed pieces and  used on the HyperRail: 
 
 [Hyspectral Camera Housing](http://a360.co/2D8uV4A)   
 [Line Gear](http://a360.co/2Hfb8TT)   
