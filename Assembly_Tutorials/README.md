@@ -1,1 +1,2 @@
-This folder will contain links to videos of the assemlby process. 
+Here you will find links to animations of the assembly process of the HyperRail:
+
