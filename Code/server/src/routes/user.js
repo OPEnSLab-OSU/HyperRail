@@ -19,16 +19,23 @@ router.get('/list', async (req, res) => {
         password: <password>
     }
 */
-router.post('/create', async (req, res) => {
+router.put('/create', async (req, res) => {
     const collection = db.get().collection('users');
     const username = req.body.username;
     const password = req.body.password;
+    
     if(username == null || password == null) {
         res.status(400).send('Invalid payload');
         return;
     } 
-    const hash = await bcrypt.hash(password, 10);
-    createUser(collection, username, hash)
+
+    const hashPass = await bcrypt.hash(password, 10);
+    const obj = {
+        username: username, 
+        password: hashPass
+    };
+
+    collection.insertOne(obj)
     .then((result) => {
         res.status(201).send('Created');
     })
@@ -37,14 +44,19 @@ router.post('/create', async (req, res) => {
     });
 });
 
-router.post('/delete', async (req, res) => {
+router.delete('/delete', async (req, res) => {
     const collection = db.get().collection('users');
     const username = req.body.username;
     if(username == null) {
         res.status(400).send('Invalid payload');
         return;
     } 
-    deleteUser(collection, username)
+
+    const obj = {
+        username: username
+    };
+
+    collection.deleteOne(obj)    
     .then((result) => {
         if(result.deletedCount == 0) {
             res.status(409).send('User not found');
@@ -57,7 +69,7 @@ router.post('/delete', async (req, res) => {
 
 router.get('/purge', async (req, res) => {
     const collection = db.get().collection('users');
-    const result = await purgeDatabase(collection);
+    const result = collection.deleteMany();
     res.send(result);
 });
 
@@ -72,20 +84,3 @@ router.post('/login', async (req, res) =>{
 });
 
 module.exports = router;
-
-/******************
- * Helper functions
- ******************/
-async function createUser(collection, username, password) {
-    const obj = {username: username, password: password};
-    return collection.insertOne(obj);
-}
-
-async function deleteUser(collection, username) {
-    const obj = {username: username};
-    return collection.deleteOne(obj);
-}
-
-async function purgeDatabase(collection) {
-    return collection.deleteMany();
-}

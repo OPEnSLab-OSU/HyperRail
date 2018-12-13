@@ -7,6 +7,7 @@ const db = require('./src/db');
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/user', require('./src/routes/user'));
+app.use('/runs', require('./src/routes/runs'));
 
 app.get('/status', (req, res) => {
     // TODO: return status of every bot
