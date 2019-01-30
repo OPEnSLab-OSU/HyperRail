@@ -1,40 +1,59 @@
-const mongo = require('mongodb').MongoClient;
+const Influx = require('influx');
 
-let state = {
-    status: "offline",
-    db: null
+const db_url = process.env.DB_URL || 'localhost';
+const db_port = process.env.DB_PORT || '8086';
+const db_name = process.env.DB_NAME || 'HyperRailDB';
+
+let client = null;
+
+/* Quick Tips:
+ * Measurements == Table
+ * Fields,Tags == Columns
+ * 
+ * At least one field must be set
+ * Tags are indexed and therefore more performant
+ * Treat tags as metadata
+ */
+
+// Specify the schema for the following measurments
+const metadata = {
+    host: db_url,
+    port: db_port,
+    database: db_name,
+    schema: [
+        {
+            measurement: 'configs',
+            fields: {
+                name: Influx.FieldType.STRING,
+                type: Influx.FieldType.STRING
+            },
+            tags: []
+        },
+        {
+            measurement: 'run',
+            fields: {
+                value: Influx.FieldType.STRING,
+            },
+            tags: ['bot', 'type']
+        }
+    ]
 }
 
-exports.connect = (url) => {
-    if (state.status == "online") {
-        console.log('Using existing database connection');
-        return new Promise((resolve, reject) => {});
-    }
-  
-    return mongo.connect(url, {useNewUrlParser: true})
-        .then((client) => {
-            state.db = client.db('main');
-                    
-            // Set some properties
-            state.db.collection('users').createIndex({username: 1}, {unique: true});
-
-            state.status = "online";
-            console.log('Database connection established');
-        })
-        .catch((err) => console.error(err));
+exports.connect = () => {
+    let promise = new Promise((resolve, reject) => {
+        if(client == null) {
+            client = new Influx.InfluxDB(metadata);
+            client.createDatabase(db_name)
+                .then(() => resolve(`${db_url}:${db_port}`))
+                .catch((err) => reject(err));
+        }
+    });
+    return promise;
 }
 
 exports.get = () => {
-    if(!state.db) {
-        throw `DB ERROR: Database connection does not exist`;
+    if(client == null) {
+        throw "Database connection has not been established yet. Use 'db.connect()' to do so."
     }
-    return state.db;
-}
-
-exports.close = async () => {
-    if (state.status == "online") {
-        await state.db.close((result) => {
-            state.db = null;
-        });
-    }
+    return client;
 }

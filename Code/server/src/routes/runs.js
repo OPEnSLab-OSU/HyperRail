@@ -2,88 +2,66 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+const measure = 'run';
+
 /* JSON format expected for each posted data
 {
-    "botName": "string"                         // Name of the hyper rail that made this request
-    "config": {                                 // HyperRail configuration for this run
-        "railLength": "length",                 // Length of rail
-        "duration": "hh.mm.ss"                  // Time the run took
-    },
+    "botName": "string",                        // Name of the hyper rail that made this request
     "data": [                            
         {
-            "type": "sensor_type",              // Each sensor get's it's own array of values
-            "time": "yyyy.mm.dd-hh.mm.ss",      // Time the sample was taken
+            "type": "sensor type",              // Each sensor get's it's own array of values
+            "time": "unix timestamp",           // Time the sample was taken. Format is UNIX timestamp in seconds
             "value": "value"                    // Value receieved from sensor
         }
     ]
 }
 */
 
-router.put('/upload', async (req, res) => {
-    const collection = db.get().collection('runs');
-    
-    const obj = {
-        'botName': req.body.botName,
-        'runName': req.body.runName || Date.now(),
-        'data': req.body.data
-    }
+router.put('/upload', (req, res) => {
+    const client = db.get();
+    const data = req.body.data;
+    let formatData = [];
 
-    collection.insertOne(obj)
-    .then((result) => {
-        res.status(401).send('HyperRail run submitted');
-    })
-    .catch((err) => console.error(err));
+    // Format given data to InfluxDB format
+    data.forEach((elem) => {
+        formatData.push({
+            fields: {
+                value: elem.value,
+            },
+            tags: {
+                type: elem.type,
+                bot: req.body.botName
+            },
+            timestamp: new Date(elem.time * 1000)
+        });
+    });
+
+    // Write to database
+    client.writeMeasurement(measure, formatData)
+        .then(() => {
+            res.status(201).send('Data uploaded');
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(500).send('Error uploading');
+        });
 });
 
-router.get('/getBotRuns', async (req, res) => {
-    const collection = db.get().collection('runs');
-    const id = req.query.id;
-    
-    const query = {
-       'runId': {$regex: id}
+// Param: bot
+router.get('/list', async (req, res) => {
+    const client = db.get();
+    let dbQuery = `SELECT * FROM ${measure}`
+    if(req.query.bot) {
+        dbQuery = `SELECT * FROM ${measure} WHERE bot='${req.query.bot}'`
     }
-
-    const result = await collection.find(query).toArray();
-    res.json(result);
+    client.query(dbQuery)
+        .then((result) => {
+            res.json(result);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(500).send('Error uploading');
+        });
 });
 
 module.exports = router;
-
-/* 
- * Helper Functions 
- */
-
-
-/* Returns: 
-{
-    hyperRailId: [
-        'runName': '21312353243124',
-        'runs': [
-            {
-                "type": "thermometer",
-                "time": "2019.01.24-12.22.05",
-                "value": "39F"
-            }
-        ]
-    ],
-}
-*/
-// MAY NOT BE NEEDED
-function sortById(data) {
-    let result = {}
-    for(let i = 0; i < data.length; i++) {
-        let botName = data[i]['botName']
-
-        if(!(botName in result)) {
-            result[botName] = [];
-        } 
-
-        let obj = {
-            'runName': data[i]['runName'],
-            'runs': data[i]['data']
-        }
-
-        result[botName].push(obj);
-    }
-    return result;
-}
