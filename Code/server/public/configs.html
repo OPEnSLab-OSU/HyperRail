@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HyperRail</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel='stylesheet' href='./navbar.css' />
+	<link rel='stylesheet' href='pure-release-1.0.0/pure.css' />
+	<link rel='stylesheet' href='pure-release-1.0.0/grids-responsive.css' />
+	<script type='text/javascript' src='jquery-3.3.1.min.js'></script>
+	<script type='text/javascript' src='./clientConfigs.js'></script>
+	
+	<style>
+		/* Body of Page */
+		body {
+			background-color: white;
+		}
+		.content {
+			padding: 5px 20px;
+		}
+		.header {
+			margin: 10px 0px;
+		}
+		#configList {
+			margin: 0px 0px 8px 4px;
+		}
+		.pure-controls {
+			margin-top: 10px !important;
+		}
+	</style>
+</head>
+<body>
+	<!--<img class='logo' src='./OSULogo.png'>-->
+	<div class='logo-temp'><br>Logo?</div>
+	
+	<div class='pure-menu navbar pure-menu-horizontal'>
+		<div class=''><h2 class='title'>HyperRail Application</h2></div>
+	
+		<ul class='pure-menu-list'>
+			<li class='pure-menu-item'><a href='./index.html?1' class='pure-menu-link'>Home</a></li>
+			<li class='pure-menu-item'><a href='./index.html?2' class='pure-menu-link'>Contact</a></li>
+			<li class='pure-menu-item'><a href='./runs.html' class='pure-menu-link'>Runs</a></li>
+			<li class='pure-menu-item'><a href='#' class='pure-menu-link active'>Configs</a></li>
+		</ul>
+	</div>
+	<div class='content'>
+		<div class='pure-g'>
+			<div class='pure-u-lg-1-2 pure-u-1'>
+				<h3 class='header'>Create Configurations</h3>
+				<form class='pure-form pure-form-aligned'>
+					<fieldset>
+						<div class='pure-control-group'>
+							<label for='name'>Config Name</label>
+							<input id='configName' type='text' placeholder='Config Name' required></input>
+						</div>
+						<div class='pure-control-group'>
+							<label for='speed'>Speed</label>
+							<input id='speed' type='number' placeholder='Speed' required></input>
+						</div>
+						<div class='pure-control-group'>
+							<label for='railLength'>Rail Length</label>
+							<input id='railLength' type='number' placeholder='Rail Length' required></input>
+						</div>
+						<div class='pure-control-group'>
+							<label for='spool'>Spool Radius</label>
+							<input id='spool' type='number' placeholder='Spool Radius' required></input>
+						</div>
+						<div class='pure-controls'>
+							<button id='createConfig' type='submit' class='pure-button pure-button-primary'>Create</button>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+			<div class='pure-u-lg-1-2 pure-u-1'>
+				<h3 class='header'>Modify Configurations</h3>
+				<h4 class='header'>Config List:
+					<select id='configList' class=''>
+						<!-- Append Config List here -->
+					</select>
+				</h4>
+				<form class='pure-form pure-form-aligned'>
+					<fieldset>
+						<div class='pure-control-group'>
+							<label for='modifyName'>Config Name</label>
+							<input id='modifyConfigName' type='text' placeholder='Config Name' required></input>
+						</div>
+						<div class='pure-control-group'>
+							<label for='modifySpeed'>Speed</label>
+							<input id='modifySpeed' type='number' placeholder='Speed' required></input>
+						</div>
+						<div class='pure-control-group'>
+							<label for='modifyRailLength'>Rail Length</label>
+							<input id='modifyRailLength' type='number' placeholder='Rail Length' required></input>
+						</div>
+						<div class='pure-control-group'>
+							<label for='modifySpool'>Spool Radius</label>
+							<input id='modifySpool' type='number' placeholder='Spool Radius' required></input>
+						</div>
+						<div class='pure-controls'>
+							<button id='saveConfig' type='submit' class='pure-button pure-button-primary'>Save</button>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

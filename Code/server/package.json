@@ -18,8 +18,11 @@
   },
   "homepage": "https://github.com/OPEnSLab-OSU/HyperRail#readme",
   "dependencies": {
-    "bcrypt": "^3.0.2",
+    "axios": "^0.18.0",
     "express": "^4.16.4",
-    "mongodb": "^3.1.10"
+    "influx": "^5.0.7"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.7"
   }
 }
