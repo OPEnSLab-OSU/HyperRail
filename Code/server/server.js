@@ -2,12 +2,13 @@ const express = require('express');
 const app = express();
 const port = process.env.SERVER_PORT || 3000;
 const db = require('./src/db');
+const logger = require('./src/logger');
 
 // Define routes and middleware
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/runs', require('./src/routes/runs'));
-app.use('/configs', require('./src/routes/configs'))
+app.use('/configs', require('./src/routes/configs'));
 
 app.get('/status', (req, res) => {
     // TODO: return status of every bot
@@ -20,19 +21,20 @@ app.delete('/purge', (req, res) => {
         .then(() => {
             res.send('It has been done');
         })
-        .catch((err) => console.error(err));
+        .catch((err) => logger.log(logger.level.ERROR, err));
 });
 
 db.connect()
     .then((db_info) => {
-        console.log(`Database started at ${db_info}`)
+        logger.log(logger.level.OK, `Database started at ${db_info}`);
         app.listen(port, () => {
-            console.log(`Server started at localhost:${port}`);
+            logger.log(logger.level.OK, `Server started at localhost:${port}`);
         });           
     })
     .catch((err) => {
-        console.error("Cannot connect to database");
-        console.error(err.message);
-        console.error(err.stack);
+
+        logger.log(logger.level.ERROR, "Error connecting to database");
+        logger.log(logger.level.ERROR, err.message);
+        logger.log(logger.level.ERROR, err.stack);
         process.exit(1);
     });

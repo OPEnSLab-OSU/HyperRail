@@ -21,39 +21,32 @@ const metadata = {
     port: db_port,
     database: db_name,
     schema: [
-        {
-            measurement: 'configs',
-            fields: {
-                name: Influx.FieldType.STRING,
-                type: Influx.FieldType.STRING
-            },
-            tags: []
-        },
-        {
+        { 
             measurement: 'run',
             fields: {
                 value: Influx.FieldType.STRING,
             },
-            tags: ['bot', 'type']
+            tags: ['bot', 'type', 'name']
         }
     ]
-}
+};
 
 exports.connect = () => {
-    let promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         if(client == null) {
             client = new Influx.InfluxDB(metadata);
             client.createDatabase(db_name)
                 .then(() => resolve(`${db_url}:${db_port}`))
                 .catch((err) => reject(err));
+        } else {
+            reject("DB connection already established");
         }
     });
-    return promise;
-}
+};
 
 exports.get = () => {
     if(client == null) {
-        throw "Database connection has not been established yet. Use 'db.connect()' to do so."
+        throw "Database connection has not been established yet. Use 'db.connect()' to do so.";
     }
     return client;
-}
+};

@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const logger = require('../logger');
 
-const measure = 'run';
+// Table to put data in
+const measure = 'run';  
 
 /* JSON format expected for each posted data
 {
@@ -17,7 +19,7 @@ const measure = 'run';
 }
 */
 
-router.put('/upload', (req, res) => {
+router.post('/create', (req, res) => {
     const client = db.get();
     const data = req.body.data;
     let formatData = [];
@@ -30,7 +32,8 @@ router.put('/upload', (req, res) => {
             },
             tags: {
                 type: elem.type,
-                bot: req.body.botName
+                bot: req.body.botName,
+                name: req.body.runName
             },
             timestamp: new Date(elem.time * 1000)
         });
@@ -39,28 +42,36 @@ router.put('/upload', (req, res) => {
     // Write to database
     client.writeMeasurement(measure, formatData)
         .then(() => {
-            res.status(201).send('Data uploaded');
+            const msg = logger.buildPayload(logger.level.OK, 'Data uploaded');
+            const status = 201;
+            res.status(status).send(msg);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error uploading');
+            logger.log(logger.level.ERROR, err);
+
+            const msg = logger.buildPayload(logger.level.ERROR, 'Error uploading');
+            const status = 500;
+            res.status(status).send(msg);
         });
 });
 
-// Param: bot
-router.get('/list', async (req, res) => {
+// Param: bot=<bot name>
+router.get('/read', (req, res) => {
     const client = db.get();
-    let dbQuery = `SELECT * FROM ${measure}`
+    let dbQuery = `SELECT * FROM ${measure}`;
     if(req.query.bot) {
-        dbQuery = `SELECT * FROM ${measure} WHERE bot='${req.query.bot}'`
+        dbQuery = `SELECT * FROM ${measure} WHERE bot='${req.query.bot}'`;
     }
     client.query(dbQuery)
         .then((result) => {
             res.json(result);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Error uploading');
+            logger.log(logger.level.ERROR, err);
+
+            const msg = logger.buildPayload(logger.level.ERROR, 'Error uploading');
+            const status = 500;
+            res.status(status).send(msg);
         });
 });
 
