@@ -15,6 +15,7 @@ app.get('/status', (req, res) => {
     res.send(`Server is good`);
 });
 
+// Cleanup endpoint, don't keep in final product
 app.delete('/purge', (req, res) => {
     const client = db.get();
     client.dropMeasurement(req.query.measurement)
@@ -32,7 +33,6 @@ db.connect()
         });           
     })
     .catch((err) => {
-
         logger.log(logger.level.ERROR, "Error connecting to database");
         logger.log(logger.level.ERROR, err.message);
         logger.log(logger.level.ERROR, err.stack);
