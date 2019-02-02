@@ -55,13 +55,22 @@ router.post('/create', (req, res) => {
         });
 });
 
-// Param: bot=<bot name>
-router.get('/read', (req, res) => {
+// Params: Any tag defined in the db schema
+router.get('/search', (req, res) => {
     const client = db.get();
     let dbQuery = `SELECT * FROM ${measure}`;
-    if(req.query.bot) {
-        dbQuery = `SELECT * FROM ${measure} WHERE bot='${req.query.bot}'`;
+
+    // Build query from parameters (if parameters exist)
+    if(!(Object.entries(req.query).length === 0 && req.query.constructor === Object)){
+        dbQuery += ' WHERE ';
+        for(let key in req.query) {
+            dbQuery += `${key}='${req.query[key]}' AND `;
+        }
+        // Trim extra ' AND ' at end of string
+        dbQuery = dbQuery.substring(0, dbQuery.length - 5);
     }
+
+    // Run query
     client.query(dbQuery)
         .then((result) => {
             res.json(result);
@@ -69,7 +78,7 @@ router.get('/read', (req, res) => {
         .catch((err) => {
             logger.log(logger.level.ERROR, err);
 
-            const msg = logger.buildPayload(logger.level.ERROR, 'Error uploading');
+            const msg = logger.buildPayload(logger.level.ERROR, 'Error reading database');
             const status = 500;
             res.status(status).send(msg);
         });

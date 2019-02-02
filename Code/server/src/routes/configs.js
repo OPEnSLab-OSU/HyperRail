@@ -14,7 +14,7 @@ const configDir = path.join(process.cwd(), '/configs');
 }
 */
 router.post('/create', (req, res) => {
-    const fileName = req.body.configName + '.json';
+    const fileName = `${req.body.configName}.json`;
     const data = req.body.data;
 
     const filePath = path.join(configDir, fileName);
@@ -41,7 +41,7 @@ router.post('/create', (req, res) => {
 });
 
 router.get('/read', (req, res) => {
-    const fileName = req.query.configName + '.json';
+    const fileName = `${req.body.configName}.json`;
     const filePath = path.join(configDir, fileName);
 
     if(fs.existsSync(filePath)) {
