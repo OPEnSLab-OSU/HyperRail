@@ -1,0 +1,55 @@
+/* Navbar Logo */
+.logo{
+	position: absolute;
+	height: 100px;
+	width: 100px;
+	z-index: 1;
+	text-align: center;
+	vertical-align: middle;
+}
+.logo-temp{
+	position: absolute;
+	height: 100px;
+	width: 100px;
+	z-index: 1;
+	text-align: center;
+	vertical-align: ;
+	background-color: silver;
+}
+
+
+/* Navbar */
+.navbar {
+	height: 100px;
+	width: 100vw;
+	background-color: paleturquoise;
+	padding: 15px;
+	padding-left: 110px;
+}
+.title {
+	margin: 0px 0px 10px;
+}
+
+
+/* Nav Items */
+.pure-menu-link{
+	color: black !important; 
+	border-style: solid !important;
+	border-width: 0px 0px 3px !important;
+	border-color: paleturquoise !important;
+}
+.pure-menu-link:focus{
+	background-color: paleturquoise !important;
+}
+.pure-menu-link:hover {
+	background-color: turquoise !important;
+}
+
+.active {
+	color: darkgreen !important;
+	/*background-color: gainsboro;*/
+	/*text-decoration: underline;*/
+	border-style: solid !important;
+	border-width: 0px 0px 3px !important;
+	border-color: darkgreen !important;
+}
