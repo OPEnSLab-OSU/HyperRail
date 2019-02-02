@@ -5,10 +5,12 @@ const logger = {
         OK: "OK"
     }, 
     log(level, str) {
+        const formatTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/,'');
+        const msg = `[${formatTime}] ${level}:\t${str}`;
         if(level == this.level.ERROR) {
-            console.error(level + ": \t" + str);
+            console.error(msg);
         } else {
-            console.log(level + ": \t" + str);
+            console.log(msg);
         }
     },
     buildPayload(level, str) {
