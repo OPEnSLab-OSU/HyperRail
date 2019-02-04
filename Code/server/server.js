@@ -1,19 +1,15 @@
 const express = require('express');
 const app = express();
 const port = process.env.SERVER_PORT || 3000;
-const db = require('./src/db');
-const logger = require('./src/logger');
+const db = require('./src/support/db');
+const logger = require('./src/support/logger');
 
 // Define routes and middleware
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/runs', require('./src/routes/runs'));
 app.use('/configs', require('./src/routes/configs'));
-
-app.get('/status', (req, res) => {
-    // TODO: return status of every bot
-    res.send(`Server is good`);
-});
+app.use('/bots', require('./src/routes/bots'));
 
 // Cleanup endpoint, don't keep in final product
 app.delete('/purge', (req, res) => {

@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
-const logger = require('../logger');
+const db = require('../support/db');
+const logger = require('../support/logger');
 
-// Table to put data in
+// Table/Measure to put data in
 const measure = 'run';  
 
 /* JSON format expected for each posted data
 {
     "botName": "string",                        // Name of the hyper rail that made this request
+    "runName": "string",                        // Name of the run. User defined.
     "data": [                            
         {
             "type": "sensor type",              // Each sensor get's it's own array of values

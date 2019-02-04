@@ -39,7 +39,7 @@ exports.connect = () => {
                 .then(() => resolve(`${db_url}:${db_port}`))
                 .catch((err) => reject(err));
         } else {
-            reject("DB connection already established");
+            reject('DB connection already established');
         }
     });
 };
