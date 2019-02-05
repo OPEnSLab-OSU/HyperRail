@@ -1,14 +1,14 @@
-function loadRunList(){
+function loadRunList() {
 	console.log("Test");
 }
 
-function loadRunData(){
+function loadRunData() {
 	/*$.getJSON("/read", {}, function(data){
 		console.log(data);
 	});*/
 }
 
-$(document).ready(function(){
+$(document).ready(() => {
 	loadRunList();
 	$("#runList").on("change", loadRunData);
 });
