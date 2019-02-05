@@ -88,7 +88,7 @@
         "jsx-quotes": "error",
         "key-spacing": "off",
         "keyword-spacing": "off",
-        "line-comment-position": "error",
+        "line-comment-position": "off",
         "linebreak-style": [
             "error",
             "windows"
@@ -151,7 +151,7 @@
         ],
         "no-implicit-globals": "error",
         "no-implied-eval": "error",
-        "no-inline-comments": "error",
+        "no-inline-comments": "off",
         "no-inner-declarations": [
             "error",
             "functions"
