@@ -46,7 +46,7 @@
 				<input id='runName' type='text' placeholder='Run Name'></input>
 				<input id='sensorType' type='text' placeholder='Sensor Type'></input>
 				<input id='botName' type='text' placeholder='Bot Name'></input>
-				<button type='' class='pure-button pure-button-primary'>Search</button>
+				<button id='runSearch' type='button' class='pure-button pure-button-primary'>Search</button>
 			</fieldset>
 		</form>
 		<table class='pure-table'>
@@ -58,7 +58,7 @@
 					<th>Value</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody id='dataTable'>
 				<!-- Append Data here -->
 			</tbody>
 		</table>
