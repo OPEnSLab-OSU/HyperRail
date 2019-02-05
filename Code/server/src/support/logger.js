@@ -1,3 +1,16 @@
+function getNow() {
+    const date = new Date();
+
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDay().toString().padStart(2, '0');
+    const hour = date.getHours().toString().padStart(2, '0');
+    const min = date.getMinutes().toString().padStart(2, '0');
+    const sec = date.getSeconds().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
+}
+
 const logger = {
     level: {
         WARN: "WARN",
@@ -6,7 +19,7 @@ const logger = {
     }, 
     log(level, str) {
         // YYYY-MM-DD HH:MM:SS
-        const formatTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/,'');
+        const formatTime = getNow();
         const msg = `[${formatTime}] ${level} |\t${str}`;
         if(level == this.level.ERROR) {
             console.error(msg);

@@ -7,6 +7,7 @@ const logger = require('./src/support/logger');
 // Define routes and middleware
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/', express.static('public/html'));
 app.use('/runs', require('./src/routes/runs'));
 app.use('/configs', require('./src/routes/configs'));
 app.use('/bots', require('./src/routes/bots'));
@@ -14,7 +15,7 @@ app.use('/bots', require('./src/routes/bots'));
 // Cleanup endpoint, don't keep in final product
 app.delete('/purge', (req, res) => {
     const client = db.get();
-    client.dropMeasurement(req.query.measurement)
+    client.dropMeasurement(req.query.measurement) // Test
         .then(() => {
             res.send('It has been done');
         })
@@ -22,8 +23,8 @@ app.delete('/purge', (req, res) => {
 });
 
 db.connect()
-    .then((db_info) => {
-        logger.log(logger.level.OK, `Database started at ${db_info}`);
+    .then((dbInfo) => {
+        logger.log(logger.level.OK, `Database started at ${dbInfo}`);
         app.listen(port, () => {
             logger.log(logger.level.OK, `Server started at localhost:${port}`);
         });           

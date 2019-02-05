@@ -10,7 +10,7 @@ const monitor = require('../support/monitor');
     name: "string",         // Name/ID of the bot
 }
 */
-router.post('/connect', (req, res) =>{
+router.post('/connect', (req, res) => {
     const name = req.body.name;
     monitor.add(name);
 });

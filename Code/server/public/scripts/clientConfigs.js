@@ -1,4 +1,4 @@
-function createConfig(){
+function createConfig() {
 	console.log("Create");
 	/*$.post("/create", {}, function(){
 		
@@ -7,11 +7,11 @@ function createConfig(){
 }
 
 
-function loadConfigList(){
-	$.getJSON("/listConfigs", {}, function(data){
+function loadConfigList() {
+	$.getJSON("/listConfigs", {}, (data) => {
 		console.log(data);
 		var configs = "";
-		$(data).each(function(){
+		$(data).each(() => {
 			configs += "<option>"+this.configName+"</option>";
 		});
 		var table = $(configs);
@@ -20,17 +20,17 @@ function loadConfigList(){
 }
 
 
-function loadConfig(){
+function loadConfig() {
 	console.log("Load");
 }
 
 
-function saveConfig(){
+function saveConfig() {
 	console.log("Save");
 }
 
 
-$(document).on("ready", function(){
+$(document).on("ready", () => {
 	loadConfigList();
 	
 	$("#createConfig").on("click", createConfig);

@@ -62,10 +62,12 @@ router.get('/search', (req, res) => {
     let dbQuery = `SELECT * FROM ${measure}`;
 
     // Build query from parameters (if parameters exist)
-    if(!(Object.entries(req.query).length === 0 && req.query.constructor === Object)){
+    if(!(Object.entries(req.query).length === 0 && req.query.constructor === Object)) {
         dbQuery += ' WHERE ';
         for(let key in req.query) {
-            dbQuery += `${key}='${req.query[key]}' AND `;
+            if(req.query[key] != '') {
+                dbQuery += `"${key}"='${req.query[key]}' AND `;
+            }
         }
         // Trim extra ' AND ' at end of string
         dbQuery = dbQuery.substring(0, dbQuery.length - 5);
