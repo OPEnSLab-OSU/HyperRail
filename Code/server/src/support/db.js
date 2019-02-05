@@ -1,8 +1,8 @@
 const Influx = require('influx');
 
-const db_url = process.env.DB_URL || 'localhost';
-const db_port = process.env.DB_PORT || '8086';
-const db_name = process.env.DB_NAME || 'HyperRailDB';
+const dbUrl = process.env.DB_URL || 'localhost';
+const dbPort = process.env.DB_PORT || '8086';
+const dbName = process.env.DB_NAME || 'HyperRailDB';
 
 let client = null;
 
@@ -17,9 +17,9 @@ let client = null;
 
 // Specify the schema for the following measurments
 const metadata = {
-    host: db_url,
-    port: db_port,
-    database: db_name,
+    host: dbUrl,
+    port: dbPort,
+    database: dbName,
     schema: [
         { 
             measurement: 'run',
@@ -35,8 +35,8 @@ exports.connect = () => {
     return new Promise((resolve, reject) => {
         if(client == null) {
             client = new Influx.InfluxDB(metadata);
-            client.createDatabase(db_name)
-                .then(() => resolve(`${db_url}:${db_port}`))
+            client.createDatabase(dbName)
+                .then(() => resolve(`${dbUrl}:${dbPort}`))
                 .catch((err) => reject(err));
         } else {
             reject('DB connection already established');

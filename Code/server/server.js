@@ -22,8 +22,8 @@ app.delete('/purge', (req, res) => {
 });
 
 db.connect()
-    .then((db_info) => {
-        logger.log(logger.level.OK, `Database started at ${db_info}`);
+    .then((dbInfo) => {
+        logger.log(logger.level.OK, `Database started at ${dbInfo}`);
         app.listen(port, () => {
             logger.log(logger.level.OK, `Server started at localhost:${port}`);
         });           
