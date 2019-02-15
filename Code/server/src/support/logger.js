@@ -11,25 +11,35 @@ function getNow() {
     return `${year}-${month}-${day} ${hour}:${min}:${sec}`;
 }
 
+function log(level, str) {
+    // YYYY-MM-DD HH:MM:SS
+    const formatTime = getNow();
+    const msg = `[${formatTime}] ${level} |\t${str}`;
+    if(level == logger.level.ERROR) {
+        console.error(msg);
+    } else {
+        console.log(msg);
+    }
+}
+
 const logger = {
     level: {
         WARN: "WARN",
         ERROR: "ERROR",
         OK: "OK"
     }, 
-    log(level, str) {
-        // YYYY-MM-DD HH:MM:SS
-        const formatTime = getNow();
-        const msg = `[${formatTime}] ${level} |\t${str}`;
-        if(level == this.level.ERROR) {
-            console.error(msg);
-        } else {
-            console.log(msg);
-        }
+    ok(str) {
+        log(this.level.OK, str);
     },
-    buildPayload(level, str) {
+    warn(str) {
+        log(this.level.WARN, str);
+    },
+    error(str) {
+        log(this.level.ERROR, str);
+    },
+    buildPayload(lvl, str) {
         return {
-            level: level,
+            level: lvl,
             info: str
         };
     }
