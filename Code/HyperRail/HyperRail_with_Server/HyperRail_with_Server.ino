@@ -1,15 +1,21 @@
 #include <ArduinoJson.h>
 #include <SPI.h>
 #include <WiFi101.h>
-//#include "arduino_secrets.h" 
+#include "secrets.h" 
 
-#define SECRET_SSID "HyperRail AP"
-#define SECRET_PASS "password"
-#define DELAY       5
+#define DELAY           5
+#define MASTER_ADDRESS  "localhost"
+#define MASTER_PORT     3000
 
 struct Config {
   int length;
   int duration;
+};
+
+struct Data {
+  int timestamp;
+  String sensor;
+  String value;
 };
 
 /* Context:
@@ -23,18 +29,21 @@ struct Config {
  *  3. Send results of run back to Master server
  */
 
-char ssid[] = SECRET_SSID;        // your network SSID (name)
-char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
-int keyIndex = 0;                // your network key Index number (needed only for WEP)
+
+const char ssid[] = SECRET_SSID;        // your network SSID (name)
+const char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
+const bool SERIAL_DEBUG = true;         // Set to true if you want to debug with a serial connection
 
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
 void setup() {
   // Initialize serial and wait for port to open:
-  Serial.begin(9600);
-  while (!Serial) {
-    ; // Wait for serial port to connect. Needed for native USB port only
+  if(SERIAL_DEBUG) {
+    Serial.begin(9600);
+    while (!Serial) {
+      ; // Wait for serial port to connect. Needed for native USB port only
+    }
   }
 
   // Check for the presence of the shield:
@@ -60,14 +69,14 @@ void setup() {
 
 void loop() {
   // Wait for instructions from client
-  Config *config;
+  Config config;
   while(true) {
-    WiFiClient client = server.available();   // listen for incoming clients
+    WiFiClient inClient = server.available();   // listen for incoming clients
 
     // Response from Master server
-    if(client) {
+    if(inClient) {
       // Read in data from Master 
-      String request = getRequest(client);
+      String request = getRequest(inClient);
 
       // Process request
       config = parseRequest(request);
@@ -78,15 +87,23 @@ void loop() {
     }
   }
   
-
-
   // Execute command
   while(true) {
     break;
   }
 
   // Send data to server
-  
+  while(true) {
+    WiFiClient outClient;
+    if(outClient.connect(MASTER_ADDRESS, MASTER_PORT)) {
+      // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+      // and a content-type so the client knows what's coming, then a blank line:
+      Data *data = new Data;
+
+      String response = createResponse(data);          
+      sendResponse(outClient, response);
+    }
+  }
 }
 
 String getRequest(WiFiClient client) {
@@ -102,15 +119,14 @@ String getRequest(WiFiClient client) {
         if (line.length() == 0) {
           // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
           // and a content-type so the client knows what's coming, then a blank line:
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-type:application/json");
-          client.println();
 
-          // the content of the HTTP response follows the header:
-          client.print("{\"Status\": \"Recieved\"}");
-
-          // The HTTP response ends with another blank line:
-          client.println();
+          String data = "HTTP/1.1 200 OK\n"
+                        "Content-type:application/json\n"
+                        "\n"
+                        "{\"Status\": \"Recieved\"}\n"
+                        "\n";
+          
+          client.println(data);
           // break out of the while loop:
           break;
         }
@@ -127,10 +143,31 @@ String getRequest(WiFiClient client) {
 }
 
 // Take JSON string and convert to config
-Config *parseRequest(String request) {
-  Config* config = new Config;
-  config->length = 4;
+Config parseRequest(String request) {
+  const int cap = JSON_OBJECT_SIZE(10);
+  StaticJsonBuffer<cap> buffer;
+  Config config;
+
+  JsonObject& obj = buffer.parseObject(request.c_str());
+  if(obj.success()) {
+    config.length = obj["length"];
+  } else {
+    Serial.println("ERROR: Cannot parse request");
+  }
   return config;
+}
+
+String createResponse(Data *data) {
+  String str = "HTTP/1.1 200 OK\n"
+               "Content-type:application/json\n"
+               "\n"
+               "{}\n"
+               "\n";
+  return str;
+}
+
+bool sendResponse(WiFiClient client, String response) {
+  return true;
 }
 
 // Pretty print Wifi info
@@ -144,3 +181,4 @@ void printWiFiStatus() {
   Serial.print("IP Address: ");
   Serial.println(ip);
 }
+
