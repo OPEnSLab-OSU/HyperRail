@@ -5,10 +5,8 @@ function loadRunData() {
 		type: $("#sensorType").val()
 	}, (entries) => {
 		let data = "";					//String to hold table information
-		console.log(entries);
 		if(entries.length > 0) {		//If entries were found
 			$(entries).each((index, obj) => {		//For each entry, add it to the table string
-				console.log(obj);
 				data += "<tr>" +
 							"<td>"+obj.bot+"</td>" +
 							"<td>"+obj.name+"</td>" +

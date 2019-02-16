@@ -46,26 +46,31 @@
 		<div class='pure-g'>
 			<div class='pure-u-lg-1-2 pure-u-1'>
 				<h3 class='header'>Create Configurations</h3>
-				<form class='pure-form pure-form-aligned'>
+				<form id='createForm' value=1 class='pure-form pure-form-aligned'>
 					<fieldset>
 						<div class='pure-control-group'>
 							<label for='name'>Config Name</label>
 							<input id='configName' type='text' placeholder='Config Name' required></input>
 						</div>
 						<div class='pure-control-group'>
-							<label for='speed'>Speed</label>
-							<input id='speed' type='number' placeholder='Speed' required></input>
+							<label for='railLength'>Rail Length (m)</label>
+							<input id='railLength' type='text' placeholder='Rail Length' required></input>
 						</div>
 						<div class='pure-control-group'>
-							<label for='railLength'>Rail Length</label>
-							<input id='railLength' type='number' placeholder='Rail Length' required></input>
+							<label for='speed'>Speed (mm/s)</label>
+							<input id='speed' type='text' placeholder='Speed' required></input>
 						</div>
 						<div class='pure-control-group'>
-							<label for='spool'>Spool Radius</label>
-							<input id='spool' type='number' placeholder='Spool Radius' required></input>
+							<label for='spool'>Spool Radius (mm)</label>
+							<input id='spool' type='text' placeholder='Spool Radius' required></input>
+						</div>
+						<div class='pure-control-group sensor'>
+							<label for='sensor1'>Sensor 1</label>
+							<input id='sensor1' type='text' placeholder='Sensor Type 1' required></input>
 						</div>
 						<div class='pure-controls'>
-							<button id='createConfig' type='submit' class='pure-button pure-button-primary'>Create</button>
+							<button id='addSensor' type='button' class='pure-button pure-button-primary'>Add Sensor</button>
+							<button id='createConfig' type='button' class='pure-button pure-button-primary'>Create</button>
 						</div>
 					</fieldset>
 				</form>
@@ -84,19 +89,19 @@
 							<input id='modifyConfigName' type='text' placeholder='Config Name' required></input>
 						</div>
 						<div class='pure-control-group'>
-							<label for='modifySpeed'>Speed</label>
-							<input id='modifySpeed' type='number' placeholder='Speed' required></input>
+							<label for='modifyRailLength'>Rail Length (m)</label>
+							<input id='modifyRailLength' type='text' placeholder='Rail Length' required></input>
 						</div>
 						<div class='pure-control-group'>
-							<label for='modifyRailLength'>Rail Length</label>
-							<input id='modifyRailLength' type='number' placeholder='Rail Length' required></input>
+							<label for='modifySpeed'>Speed (mm/s)</label>
+							<input id='modifySpeed' type='text' placeholder='Speed' required></input>
 						</div>
 						<div class='pure-control-group'>
-							<label for='modifySpool'>Spool Radius</label>
-							<input id='modifySpool' type='number' placeholder='Spool Radius' required></input>
+							<label for='modifySpool'>Spool Radius (mm)</label>
+							<input id='modifySpool' type='text' placeholder='Spool Radius' required></input>
 						</div>
 						<div class='pure-controls'>
-							<button id='saveConfig' type='submit' class='pure-button pure-button-primary'>Save</button>
+							<button id='saveConfig' type='button' class='pure-button pure-button-primary'>Save</button>
 						</div>
 					</fieldset>
 				</form>
