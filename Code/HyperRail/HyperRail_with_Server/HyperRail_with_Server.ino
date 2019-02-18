@@ -46,6 +46,9 @@ void setup() {
     }
   }
 
+  // Feather M0 requires WiFi pins to be set  
+  WiFi.setPins(8,7,4,2);
+
   // Check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
@@ -72,18 +75,15 @@ void loop() {
   Config config;
   while(true) {
     WiFiClient inClient = server.available();   // listen for incoming clients
-
     // Response from Master server
     if(inClient) {
       // Read in data from Master 
       String request = getRequest(inClient);
+      Serial.println(request);
 
       // Process request
       config = parseRequest(request);
       break;
-    } else {
-      // Wait a second before checking requests again.
-      delay(1000);
     }
   }
   
@@ -107,39 +107,72 @@ void loop() {
 }
 
 String getRequest(WiFiClient client) {
+  String msg = "";
   String line = "";
+  String json = "";
+   
   while(client.connected()) {
-    if (client.available()) {             // if there's bytes to read from the client,
-      char c = client.read();             // read a byte, then
-      Serial.write(c);                    // print it out the serial monitor
-      if (c == '\n') {                    // if the byte is a newline character
+    if(client.available()) {
+      char c = client.read();
+      // Read in one line at a time
+      if(c != '\n') {
+        line += c;
+      } else {
+        // Begin reading POST body
+        if(line == "\r") {
 
-        // if the current line is blank, you got two newline characters in a row.
-        // that's the end of the client HTTP request, so send a response:
-        if (line.length() == 0) {
-          // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-          // and a content-type so the client knows what's coming, then a blank line:
+          Serial.println("Printing POST:");
+          while(client.available()) {
+            json += (char) client.read();
+          }
 
-          String data = "HTTP/1.1 200 OK\n"
-                        "Content-type:application/json\n"
-                        "\n"
-                        "{\"Status\": \"Recieved\"}\n"
-                        "\n";
-          
-          client.println(data);
-          // break out of the while loop:
-          break;
+          Serial.println("Done reading data");
+
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-type:text/html");
+          client.println();
+        
+          // the content of the HTTP response follows the header:
+          client.print("Click <a href=\"/H\">here</a> turn the LED on<br>");
+          client.print("Click <a href=\"/L\">here</a> turn the LED off<br>");
+          client.println();  
+          break;    
         }
-        else {      // if you got a newline, then clear currentLine:
-          line = "";
-        }
-      }
-      else if (c != '\r') {    // if you got anything else but a carriage return character,
-        line += c;      // add it to the end of the currentLine
+        line = "";
       }
     }
   }
-  return line;
+
+
+  
+  
+  if (client.connected()) {
+    Serial.println();
+    Serial.println("Disconnecting from server.");
+    Serial.print("JSON: ");
+    Serial.println(json);
+    client.stop();
+  } else {
+    Serial.println("not sure how I got here");
+  }
+
+//
+//          String data = "HTTP/1.1 200 OK\n"
+//                        "Content-type:application/json\n"
+//                        "\n"
+//                        "{\"Status\": \"Recieved\"}\n"
+//                        "\n";
+          
+           
+
+
+//  Serial.println(msg);                    // print it out the serial monitor
+
+  while(true) {
+    ;
+  }
+
+  return msg;
 }
 
 // Take JSON string and convert to config
@@ -180,5 +213,8 @@ void printWiFiStatus() {
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
+
+  Serial.print("Password: ");
+  Serial.println(SECRET_PASS);
 }
 
