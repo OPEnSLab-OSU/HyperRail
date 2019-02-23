@@ -50,23 +50,26 @@
 					<fieldset>
 						<div class='pure-control-group'>
 							<label for='name'>Config Name</label>
-							<input id='configName' type='text' placeholder='Config Name' required></input>
+							<input id='configName' type='text' placeholder='Config Name'></input>
 						</div>
 						<div class='pure-control-group'>
 							<label for='railLength'>Rail Length (m)</label>
-							<input id='railLength' type='text' placeholder='Rail Length' required></input>
+							<input id='railLength' type='text' placeholder='Rail Length'></input>
 						</div>
 						<div class='pure-control-group'>
 							<label for='speed'>Speed (mm/s)</label>
-							<input id='speed' type='text' placeholder='Speed' required></input>
+							<input id='speed' type='text' placeholder='Speed'></input>
 						</div>
 						<div class='pure-control-group'>
 							<label for='spool'>Spool Radius (mm)</label>
-							<input id='spool' type='text' placeholder='Spool Radius' required></input>
+							<input id='spool' type='text' placeholder='Spool Radius'></input>
 						</div>
 						<div class='pure-control-group sensor'>
 							<label for='sensor1'>Sensor 1</label>
-							<input id='sensor1' type='text' placeholder='Sensor Type 1' required></input>
+							<select id='sensor1'>
+								<option value=-1 selected>Select a Sensor</option>
+								<!-- Append Sensor Options -->
+							</select>
 						</div>
 						<div class='pure-controls'>
 							<button id='addSensor' type='button' class='pure-button pure-button-primary'>Add Sensor</button>
@@ -78,11 +81,11 @@
 			<div class='pure-u-lg-1-2 pure-u-1'>
 				<h3 class='header'>Modify Configurations</h3>
 				<h4 class='header'>Config List:
-					<select id='configList' class=''>
+					<select id='configList'>
 						<!-- Append Config List here -->
 					</select>
 				</h4>
-				<form class='pure-form pure-form-aligned'>
+				<form id='modifyForm' class='pure-form pure-form-aligned'>
 					<fieldset>
 						<div class='pure-control-group'>
 							<label for='modifyName'>Config Name</label>

@@ -14,16 +14,14 @@ function loadRunData() {
 							"<td>"+obj.type+"</td>" +
 							"<td>"+obj.value+"</td>" +
 						"</tr>";
-				
 			});
 		} else {						//Else if no entries were found, notify the user
 			data += "<tr>" +
 						"<td colspan=5>No Data Found</td>" +
 					"</tr>";
 		}
-		let table = $(data);					//Convert the table string into an object
 		$("#dataTable > *").replaceWith("");	//Remove the old table
-		$("#dataTable").append(table);			//Append the new table
+		$("#dataTable").append($(data));		//Append the new table
 	});
 }
 
