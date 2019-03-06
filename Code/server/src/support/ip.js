@@ -12,5 +12,15 @@ module.exports.address = () => {
             address = iface.address;
         });
     });
+
+    // Don't attempt to format address if it doesn't exist
+    if(!address) {
+        return null;
+    }
+    
+    // Convert to array of integer bytes
+    address = address.split('.').map((a) => parseInt(a, 10));
     return address;
 };
+
+console.log(module.exports.address());
