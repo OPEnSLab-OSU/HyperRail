@@ -24,14 +24,14 @@ app.delete('/purge', (req, res) => {
 
 db.connect()
     .then((dbInfo) => {
-        logger.log(logger.level.OK, `Database started at ${dbInfo}`);
+        logger.ok(`Database started at ${dbInfo}`);
         app.listen(port, () => {
-            logger.log(logger.level.OK, `Server started at localhost:${port}`);
+            logger.ok(`Server started at localhost:${port}`);
         });           
     })
     .catch((err) => {
-        logger.log(logger.level.ERROR, "Error connecting to database");
-        logger.log(logger.level.ERROR, err.message);
-        logger.log(logger.level.ERROR, err.stack);
+        logger.error("Error connecting to database");
+        logger.error(err.message);
+        logger.error(err.stack);
         process.exit(1);
     });
