@@ -111,7 +111,46 @@ function loadConfig() {
 
 
 function saveConfig() {
-	console.log("Save");
+	var sensorErr = "";	//Strings to store error messages
+	var nameErr = "";
+	var floatErr = "";
+	var sensors = [];	//Array to store the list of sensors
+	
+	$("#modifyForm .sensor option:selected").each(function() {	//Get the list of selected sensors
+		if($(this).val() != -1)
+			sensors.push({sensor: $(this).text()});
+	});
+	if(sensors.length == 0)
+		sensorErr = "At least one sensor must be selected.";
+	if($.trim($("#modifyConfigName").val()) == "")		//Check if the name is empty
+		nameErr = "Config Name must be specified. ";
+	if(isNaN(parseFloat($("#modifyRailLength").val())))	//Check if the rail length is a valid float
+		floatErr = "Rail Length, ";
+	if(isNaN(parseFloat($("#modifySpeed").val())))		//Check if the speed is a valid float
+		floatErr += "Speed, ";
+	if(isNaN(parseFloat($("#modifySpool").val())))		//Check if the spool radius is a valid float
+		floatErr += "Spool Radius, ";
+	if(nameErr != "" || floatErr != "" || sensorErr != "") {		//If there were any errors specified
+		if(floatErr != "")											//If there were number errors
+			floatErr = floatErr.slice(0, -2) + " must be numbers. ";//Format the number errors
+		alert(nameErr + floatErr + sensorErr);		//Alert the user
+		return;
+	}
+	
+	if($.post("/save", {}, function(){
+		configName: $("#modifyConfigName").val(),
+		railLength: parseFloat($("#modifyRailLength").val()),
+		speed: parseFloat($("#modifySpeed").val()),
+		spoolRadius: parseFloat($("#modifySpool").val()),
+		data: sensors
+	}).done(function(){
+		alert("Configuration "+$("#modifyConfigName").val()+" was saved successfully.");	//Alert the user that the save was successful
+		$("#configList option:selected").text($("#modifyConfigName").val());				//Change the config name in the list to match the updated name
+	})){}
+	else{
+		console.log("Something went wrong. Saving config edits failed, please try again.");
+		alert("Something went wrong. Saving config edits failed, please try again.");
+	}
 }
 
 
