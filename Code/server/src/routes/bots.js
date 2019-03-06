@@ -2,40 +2,37 @@ const axios = require('axios');
 const express = require('express');
 const router = express.Router();
 const logger = require('../support/logger');
-const monitor = require('../support/monitor');
-
-// Endpoint for bot to connect to network
-/* 
-{
-    name: "string",         // Name/ID of the bot
-}
-*/
-router.post('/connect', (req, res) => {
-    const name = req.body.name;
-    monitor.add(name);
-});
-
+const ip = require('../support/ip');
 
 // Trigger a run based on a config. 
 /* 
 {
-    name: "string",         // Name of the run
-    bot: "string",          // ID of the bot to run
-    config: {               // Standard config with run details
-
-    },
-    schedule: {             
-        duration: number,   // Duration to run the test
-        startTime: number,  // When to trigger the run
-        run-count: number   // Amount of times to run this 
-    }
+    ipAddres: [integer],
+    option: integer,
+    totalSteps: integer,
+    delayTime: integer,
+    intervalFlag: integer,
+    intervalSteps: integer,
+    stops: integer,
+    luxActivated: integer,
+    co2Activated: integer,
+    particleActivated: integer,
+    humidityActivated: integer,
+    temperatureActivated: integer,
+    timeInterval: integer,
 }
 */
+router.get('/connect', (req, res) => {
+    logger.log(logger.level.OK, 'Bot connected');
+    res.send();
+});
+
 router.post('/execute', (req, res) => {
-    const config = req.body.config;
-    const schedule = req.body.schedule;
+    let msg = req.body.config;
+    msg.ipAddress = ip.address();
+    const status = 200;
 
-
+    res.status(status).send(msg);
 });
 
 router.get('/status', (req, res) => {

@@ -27,7 +27,7 @@ router.post('/create', (req, res) => {
         fs.writeFile(filePath, JSON.stringify(data), (err) => {
             let msg, status;
             if(err) {
-                logger.log(logger.level.ERROR, err);
+                logger.error(err);
 
                 msg = logger.buildPayload(logger.level.ERROR, 'Error writing config to file');
                 status = 500;
@@ -48,7 +48,7 @@ router.get('/read', (req, res) => {
         fs.readFile(filePath, 'utf8', (err, data) => {
             let msg, status;
             if(err) {
-                logger.log(logger.level.ERROR, err);
+                logger.error(err);
 
                 msg = logger.buildPayload(logger.level.ERROR, 'Error reading file');
                 status = 500;
@@ -69,7 +69,7 @@ router.get('/list', (req, res) => {
     fs.readdir(configDir, 'utf8', (err, data) => {
         let msg, status;
         if(err) {
-            logger.log(logger.level.ERROR, err);
+            logger.error(err);
 
             msg = logger.buildPayload(logger.level.ERROR, 'Error finding files');
             status = 500;
