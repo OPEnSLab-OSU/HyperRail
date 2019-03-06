@@ -22,34 +22,50 @@
 .navbar {
 	height: 100px;
 	width: 100vw;
-	background-color: paleturquoise;
-	padding: 15px;
-	padding-left: 110px;
+	margin-left: 100px;
 }
 .title {
-	margin: 0px 0px 10px;
+	margin: 0px;
+	padding: 15px 15px 14px;
+	background-color: dodgerblue;
+}
+
+.pure-menu-list {
+	width: 100vw;
+	padding: 0px 10px !important;
+	background-color: white !important;
 }
 
 
 /* Nav Items */
 .pure-menu-link{
 	color: black !important; 
+	font-size: 18px !important;
 	border-style: solid !important;
-	border-width: 0px 0px 3px !important;
-	border-color: paleturquoise !important;
+	border-width: 0px 0px 4px !important;
+	border-color: transparent !important;
+	padding: 9px 0px !important;
+	text-align: center !important;
+	width: 90px !important;
 }
 .pure-menu-link:focus{
-	background-color: paleturquoise !important;
+	background-color: inherit !important;
 }
 .pure-menu-link:hover {
-	background-color: turquoise !important;
+	background-color: inherit !important;
+	color: dodgerblue !important;
 }
 
 .active {
-	color: darkgreen !important;
+	color: black !important;
 	/*background-color: gainsboro;*/
 	/*text-decoration: underline;*/
 	border-style: solid !important;
-	border-width: 0px 0px 3px !important;
-	border-color: darkgreen !important;
+	border-width: 0px 0px 4px !important;
+	border-color: dodgerblue !important;
+}
+
+/* Body */
+body {
+	background-color: whitesmoke;
 }
