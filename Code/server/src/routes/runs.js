@@ -20,6 +20,7 @@ const measure = 'run';
 }
 */
 
+//Creating a data entry in the runs database
 router.post('/create', (req, res) => {
     const client = db.get();
     const data = req.body.data;
@@ -48,7 +49,7 @@ router.post('/create', (req, res) => {
             res.status(status).send(msg);
         })
         .catch((err) => {
-            logger.log(logger.level.ERROR, err);
+            logger.error(err);
 
             const msg = logger.buildPayload(logger.level.ERROR, 'Error uploading');
             const status = 500;
@@ -57,23 +58,27 @@ router.post('/create', (req, res) => {
 });
 
 // Params: Any tag defined in the db schema
+// Search the database for data entries
 router.get('/search', (req, res) => {
     const client = db.get();
     let dbQuery = `SELECT * FROM ${measure}`;
-
-    // Build query from parameters (if parameters exist)
-    if(!(Object.entries(req.query).length === 0 || req.query.constructor === Object)) {
-        dbQuery += ' WHERE ';
-        for(let key in req.query) {
-            if(req.query[key] != '') {
-                //dbQuery += `"${key}"='${req.query[key]}' AND `;
-				//Equivalent to a LIKE query
-				dbQuery += `"${key}" =~ /${req.query[key]}/ AND `;
-            }
-        }
-        // Trim extra ' AND ' at end of string
-        dbQuery = dbQuery.substring(0, dbQuery.length - 5);
-    }
+	let empty = true;
+    
+	dbQuery += ' WHERE ';
+	// Build query from parameters (if parameters exist)
+	for(let key in req.query) {
+		if(req.query[key] != '') {
+			empty = false;
+			//dbQuery += `"${key}"='${req.query[key]}' AND `;
+			//Equivalent to a LIKE query
+			dbQuery += `"${key}" =~ /${req.query[key]}/ AND `;
+		}
+	}
+	// Trim extra ' AND ' or ' WHERE ' at end of string if parameters exist or not
+	if(!empty)
+		dbQuery = dbQuery.substring(0, dbQuery.length - 5);
+	else
+		dbQuery = dbQuery.substring(0, dbQuery.length - 7);
 	
     // Run query
     client.query(dbQuery)
@@ -81,7 +86,7 @@ router.get('/search', (req, res) => {
             res.json(result);
         })
         .catch((err) => {
-            logger.log(logger.level.ERROR, err);
+            logger.error(err);
 
             const msg = logger.buildPayload(logger.level.ERROR, 'Error reading database');
             const status = 500;
