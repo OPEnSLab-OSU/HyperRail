@@ -19,7 +19,7 @@ app.delete('/purge', (req, res) => {
         .then(() => {
             res.send('It has been done');
         })
-        .catch((err) => logger.log(logger.level.ERROR, err));
+        .catch((err) => logger.error(err));
 });
 
 db.connect()

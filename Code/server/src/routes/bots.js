@@ -23,7 +23,7 @@ const ip = require('../support/ip');
 }
 */
 router.get('/connect', (req, res) => {
-    logger.log(logger.level.OK, 'Bot connected');
+    logger.ok('Bot connected');
     res.send();
 });
 
