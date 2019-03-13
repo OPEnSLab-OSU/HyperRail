@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 
 const configDir = path.join(process.cwd(), '/configs');
-
+const sensorList = path.join(process.cwd(), '/sensors.json');
 
 /* JSON format expected for each posted data
 {
@@ -13,17 +13,22 @@ const configDir = path.join(process.cwd(), '/configs');
     "data": {}                  // Unknown, needs discussion. Will probably be stored raw.
 }
 */
+
+// Create a config file for the HyperRail
 router.post('/create', (req, res) => {
+	logger.ok(JSON.stringify(req.body.configName));
     const fileName = `${req.body.configName}.json`;
     const data = req.body.data;
 
     const filePath = path.join(configDir, fileName);
 
+	// Check if the config name exists
     if(fs.existsSync(filePath)) {
         const msg = logger.buildPayload(logger.level.ERROR, 'Config already exists, update instead');
         const status = 403;
         res.status(status).send(msg);
     } else {
+		// If the config doesn't exist, create a new file
         fs.writeFile(filePath, JSON.stringify(data), (err) => {
             let msg, status;
             if(err) {
@@ -40,6 +45,7 @@ router.post('/create', (req, res) => {
     }
 });
 
+// Read a config file
 router.get('/read', (req, res) => {
     const fileName = `${req.body.configName}.json`;
     const filePath = path.join(configDir, fileName);
@@ -65,6 +71,27 @@ router.get('/read', (req, res) => {
     }
 });
 
+// List all of the current sensors in the sensor file
+router.get('/getSensors', (req, res) => {
+	// Read the sensor file
+	fs.readFile(sensorList, 'utf8', (err, data) => {
+		let msg, status;
+		
+		//If there was an error reading, notify the user
+        if(err) {
+            logger.error(err);
+            msg = logger.buildPayload(logger.level.ERROR, 'Error reading file');
+            status = 500;
+        } else {
+			//If there was no issue, send the data
+            msg = JSON.parse(data);
+            status = 200;
+        }   
+        res.status(status).send(msg);
+	});
+});
+
+// List all of the current config files
 router.get('/list', (req, res) => {
     fs.readdir(configDir, 'utf8', (err, data) => {
         let msg, status;

@@ -69,16 +69,17 @@ router.get('/search', (req, res) => {
 	for(let key in req.query) {
 		if(req.query[key] != '') {
 			empty = false;
-			//dbQuery += `"${key}"='${req.query[key]}' AND `;
-			//Equivalent to a LIKE query
+			// dbQuery += `"${key}"='${req.query[key]}' AND `;
+			// Equivalent to a LIKE query
 			dbQuery += `"${key}" =~ /${req.query[key]}/ AND `;
 		}
 	}
 	// Trim extra ' AND ' or ' WHERE ' at end of string if parameters exist or not
-	if(!empty)
+	if(!empty) {
 		dbQuery = dbQuery.substring(0, dbQuery.length - 5);
-	else
-		dbQuery = dbQuery.substring(0, dbQuery.length - 7);
+    } else {
+        dbQuery = dbQuery.substring(0, dbQuery.length - 7);
+    }
 	
     // Run query
     client.query(dbQuery)
