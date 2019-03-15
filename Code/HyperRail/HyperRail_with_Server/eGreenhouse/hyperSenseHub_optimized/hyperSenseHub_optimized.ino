@@ -20,8 +20,6 @@ This is the Feather M0
 #include <RF24.h>
 #include <SPI.h>
 #include <OSCBundle.h>
-#include <WiFi101.h>
-#include <ArduinoJson.h>
 
 #define LOOM_DEBUG 1 // enables serial printing (ethernet)
 #define LOOM_DEBUG_Print(X)          (LOOM_DEBUG==0) ? :  Serial.print(X)
@@ -106,29 +104,6 @@ int option = 0; //this will be used to store value from processing
 char inData[80];//This will be used for the incoming data from processing
 int current_step = 0;
 
-struct Config {
-  int ipAddress[4];
-  int option;
-  int totalSteps;
-  int delayTime;
-  int intervalFlag;
-  int intervalSteps;
-  int stops;
-  int luxActivated;
-  int co2Activated;
-  int particleActivated;
-  int humidityActivated;
-  int temperatureActivated;
-  int timeInterval;
-};
-
-Config config;
-
-// WiFi globals
-const char ssid[] = "HyperRail AP";
-int wifiStatus = WL_IDLE_STATUS;
-WiFiServer server(80);
-
 void setup() {
   pinMode(stp, OUTPUT);
   pinMode(dir, OUTPUT);
@@ -145,31 +120,14 @@ void setup() {
   //;//Do nothing. Just wait for the user to open the serial monitor.
   //}
 
-  /******
-   * Initialize WiFi Hotspot
-   ******/
-  WiFi.setPins(8,7,4,2);
-  if (WiFi.status() == WL_NO_SHIELD) {
-    Serial.println("WiFi shield not present");
-    while (true);
-  }
-  wifiStatus = WiFi.beginAP(ssid);
-  if (wifiStatus != WL_AP_LISTENING) {
-    Serial.println("Creating access point failed");
-    while (true);
-  }
-
-  // 5 second delay to ensure WiFi is set up
-  delay(5000);
-  server.begin();
-  printWiFiStatus(); 
-  
   SPI.begin();
   radio.begin();
   radio.setChannel(77);
   //radio.setCRCLength(RF24_CRC_16);
   //radio.setDataRate(RF24_1MBPS);
   network.begin(hyperRail_node);
+
+  int count = 0;
 }
 
 //Main loop
@@ -188,13 +146,13 @@ void loop() {
   }
 
 
-//  //Tell Processing that we're ready
-//  Serial.println("R");
-//
-//  while (Serial.available() == 0)
-//  {
-//    ;//Serial.println("Waiting");//for testing
-//  }
+  //Tell Processing that we're ready
+  Serial.println("R");
+
+  while (Serial.available() == 0)
+  {
+    ;//Serial.println("Waiting");//for testing
+  }
 
   //while(Serial.available() >= 2){
   //Serial.println("This is what is stored in \"user_input\" before the read : " );// for testing
@@ -203,27 +161,11 @@ void loop() {
   //Serial.println("This is what is stored in \"user_input\" after the read : " );//for testing
   //Serial.println(user_input);//for testing
 
-  // Parse any new data from the HyperRail App
-  decoder();
-  return; // temporary
+  decoder();//This is where the data gets parsed to get the values from the GUI
+
+
 
   digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control
-
-//  switch(option) {
-//    case 1:
-//      break;
-//    case 2: 
-//    case 5:
-//      break;
-//    case 3:
-//    case 4:
-//      break;
-//    default:
-//      Serial.println("Invalid input");
-//      break;
-//  }
-
-  
   if (option == 1) {
     if(delay_time >= 5100){ //if this evaluates to true, then it will go slower than 1mm/s
       travelHyperRail_slow(total_steps, delay_time);
@@ -269,161 +211,52 @@ void loop() {
 void decoder()
 {
 
-//  if (Serial.available() > 0)
-//  {
-//    String data_str = Serial.readString();//reads in the string
-//    Serial.print("From uC side: ");
-//    Serial.println(data_str);//For testing
-//    Serial.print("String length: ");
-//    Serial.println(data_str.length());
-//    data_str.toCharArray(inData, 80);//converts the string into char array
-//
-//  }
-//  //Serial.print("Here");
-//  //int numVals = sscanf(inData, "[O:%d,S:%ld,D:%d,I:%d,IS:%ld,ST:%d,CO2:%d,Lux:%d,Part:%d,HT:%d*/ ", &option, &total_steps, &delay_time, &intervals_flag, &interval_steps, &stops, &co2_activated, &lux_activated, &particle_activated, &humidity_activated);
-//  int numVals = sscanf(inData, "[O:%d,S:%ld,D:%d,I:%d,IS:%ld,ST:%d,CO2:%d,Lux:%d,Part:%d,H:%d,T:%d,TI:%d",
-//                                &option, &total_steps, &delay_time, &intervals_flag, &interval_steps,
-//                                &stops, &co2_activated, &lux_activated, &particle_activated, &humidity_activated,
-//                                &temperature_activated, &time_interval);
+  if (Serial.available() > 0)
+  {
+    String data_str = Serial.readString();//reads in the string
+    Serial.print("From uC side: ");// for testing
+    Serial.println(data_str);//For testing
+    Serial.print("String length: ");// for testing
+    Serial.println(data_str.length());// for testing
+    data_str.toCharArray(inData, 80);//converts the string into char array
 
-  bool newData = false;
-  String line = "";
-  WiFiClient client = server.available();   // listen for incoming clients
-
-  // Read in HTTP headers, we don't care about these
-  while(client && client.connected()) {
-    if(client.available()) {
-      char c = client.read();
-      // Build up line one char at a time, once we finish a line, process it
-      if(c != '\n') {
-        line += c;
-      } else if (line == "\r"){
-        newData = true;   
-        break;
-      } else {
-        line = "";
-      }
-    }
   }
-
-  if(newData) {
-    // Finish reading message. Only JSON body is read in here
-    line = "";
-    while(client.available()) {
-      line += (char) client.read();
-    }
-       
-    String data = "HTTP/1.1 200 OK\n"
-                  "Content-type:application/json\n"
-                  "\r\n"
-                  "{\"Status\": \"Recieved\"}\n"
-                  "\n";
-    client.println(data);
-    Serial.print("JSON: ");
-    Serial.println(line);
-  
-    if (client.connected()) {
-      client.stop();
-    }
-    config = parseRequest(line);    
-  }
-
-//  Serial.print("Option: ");
-//  Serial.println(config.option);
-//  Serial.print("Steps: ");
-//  Serial.println(config.totalSteps);
-//  Serial.print("Delay: ");
-//  Serial.println(config.delayTime);
-//  Serial.print("Interval Flag: ");
-//  Serial.println(config.intervalFlag);
-//  Serial.print("Interval Steps: ");
-//  Serial.println(config.intervalSteps);  
-//  Serial.print("Stops: ");
-//  Serial.println(config.stops);
-//  Serial.print("Lux: ");
-//  Serial.println(config.luxActivated);
-//  Serial.print("CO2: ");
-//  Serial.println(config.co2Activated);  
-//  Serial.print("Particle: ");
-//  Serial.println(config.particleActivated);
-//  Serial.print("Humidity: ");
-//  Serial.println(config.humidityActivated);
-//  Serial.print("Temperature: ");
-//  Serial.println(config.temperatureActivated);
-//  Serial.print("Time Interval: ");
-//  Serial.println(config.timeInterval);
-
-  // Temporary method to use the pre-existing globals
-  option = config.option;
-  total_steps = config.totalSteps;
-  delay_time = config.delayTime;
-  intervals_flag = config.intervalFlag;
-  interval_steps = config.intervalSteps;
-  stops = config.stops;
-  co2_activated = config.co2Activated;
-  lux_activated = config.luxActivated;
-  particle_activated = config.particleActivated;
-  humidity_activated = config.humidityActivated;
-  temperature_activated = config.temperatureActivated;
-  time_interval = config.timeInterval;
-                                
-//  Serial.print("Number of values parsed: ");
-//  Serial.println(numVals);
-//  //Serial.print("total_steps: ");
-//  //Serial.println(total_steps);
-//  //Serial.print("delay_time_A: ");
-//  //Serial.println(delay_time);
-//  Serial.print("intervals_flag: ");
-//  Serial.println(intervals_flag); 
-//  //Serial.print("interval_steps: ");
-//  //Serial.println(interval_steps);
-//  Serial.print("Stops: ");
-//  Serial.println(stops);
-//  Serial.print("CO2: ");
-//  Serial.println(co2_activated);
-//  Serial.print("Lux: ");
-//  Serial.println(lux_activated);
-//  Serial.print("Particle: " );
-//  Serial.println(particle_activated);
-//  Serial.print("Humidity: ");
-//  Serial.println(humidity_activated);
-//  Serial.print("Temperature: " );
-//  Serial.println(temperature_activated);
-//  Serial.print("Time Interval Received: " );
-//  Serial.println(time_interval);
+  //Serial.print("Here");// for testing
+  //int numVals = sscanf(inData, "[O:%d,S:%ld,D:%d,I:%d,IS:%ld,ST:%d,CO2:%d,Lux:%d,Part:%d,HT:%d*/ ", &option, &total_steps, &delay_time, &intervals_flag, &interval_steps, &stops, &co2_activated, &lux_activated, &particle_activated, &humidity_activated);
+  int numVals = sscanf(inData, "[O:%d,S:%ld,D:%d,I:%d,IS:%ld,ST:%d,CO2:%d,Lux:%d,Part:%d,H:%d,T:%d,TI:%d",
+                                &option, &total_steps, &delay_time, &intervals_flag, &interval_steps,
+                                &stops, &co2_activated, &lux_activated, &particle_activated, &humidity_activated,
+                                &temperature_activated, &time_interval);
+  Serial.print("Number of values parsed: ");//for testing
+  Serial.println(numVals);// for testing
+  //Serial.print("total_steps: ");//for testing
+  //Serial.println(total_steps);//for testing
+  //Serial.print("delay_time_A: ");// for testing
+  //Serial.println(delay_time);// for testing
+  Serial.print("intervals_flag: ");// for testing
+  Serial.println(intervals_flag); // for testing
+  //Serial.print("interval_steps: ");// for testing
+  //Serial.println(interval_steps);//for testing
+  Serial.print("Stops: ");// for testing
+  Serial.println(stops);//for testing
+  Serial.print("CO2: ");// for testing
+  Serial.println(co2_activated);// for testing
+  Serial.print("Lux: ");// for testing
+  Serial.println(lux_activated);// for testing
+  Serial.print("Particle: " );// for testing
+  Serial.println(particle_activated);//for testing
+  Serial.print("Humidity: ");// for testing
+  Serial.println(humidity_activated);// for testing
+  Serial.print("Temperature: " );// for testing
+  Serial.println(temperature_activated);// for testing
+  Serial.print("Time Interval Received: " );// for testing
+  Serial.println(time_interval);// for testing
 }
 
-Config parseRequest(String request) {
-  StaticJsonBuffer<JSON_OBJECT_SIZE(53)> buffer;
-
-  JsonObject& obj = buffer.parseObject(request.c_str());
-  if(obj.success()) {
-    config.ipAddress[0] = obj["ipAddress"][0];
-    config.ipAddress[1] = obj["ipAddress"][1];
-    config.ipAddress[2] = obj["ipAddress"][2];
-    config.ipAddress[3] = obj["ipAddress"][3];
-    
-    config.option = obj["option"];
-    config.totalSteps = obj["totalSteps"];
-    config.delayTime = obj["delayTime"];
-    config.intervalFlag = obj["intervalFlag"];
-    config.intervalSteps = obj["intervalSteps"];
-    config.stops = obj["stops"];
-    config.luxActivated = obj["luxActivated"];
-    config.co2Activated = obj["co2Activated"];
-    config.particleActivated = obj["particleActivated"];
-    config.humidityActivated = obj["humidityActivated"];
-    config.temperatureActivated = obj["temperatureActivated"];
-    config.timeInterval = obj["timeInterval"];
-  } else {
-    Serial.println("ERROR: Cannot parse request");
-  }
-  return config;
-}
 
 
 /******************* Function: resetBEDPins()*********************
-   Description: This function resets the variable used for the states back to
+   Description: This function resets the varialbe used for the states back to
                 their original values
    Parameters: NONE
    Returns: VOID
@@ -446,7 +279,8 @@ void resetBEDPins()
    Returns: VOID
 */
 
-void transmit_nRF_sensors() {
+void transmit_nRF_sensors()
+{
   
   //network.update();                        // Check the network regularly
   //Serial.println("network updated");//for testing
@@ -455,70 +289,54 @@ void transmit_nRF_sensors() {
 //
 //    Serial.println("Sending...");
 
-  OSCBundle bndl;
-  bndl.add("addr")
-      .add((int) co2_activated )
-      .add((int) lux_activated)
-      .add((int) temperature_activated)
-      .add((int) humidity_activated)
-      .add((int) particle_activated)
-      .add((float)(location/1000.));
-  
-  //LOOM_DEBUG_Println("To Sensors");  
-  //LOOM_DEBUG_Println2("Location: ", location);
-  //print_bundle(&bndl);
-  
-  bool is_sent = nrf_send_bundle(&bndl, sensor_node);
-  while(!is_sent){
-    network.update();
-    is_sent = nrf_send_bundle(&bndl, sensor_node);
-    Serial.println("Attempting to reach sensors");
-    delay(1000);
-  }
-  if(is_sent){
+    OSCBundle bndl;
+    bndl.add("addr").add((int) co2_activated ).add((int) lux_activated).add((int) temperature_activated).add((int) humidity_activated).add( (int) particle_activated).add( (float)(location/1000.));
+
+    //LOOM_DEBUG_Println("To Sensors");  
+    //LOOM_DEBUG_Println2("Location: ", location);
+    //print_bundle(&bndl);
+    
+    bool is_sent = nrf_send_bundle(&bndl, sensor_node);
+    while(!is_sent){
+      network.update();
+      is_sent = nrf_send_bundle(&bndl, sensor_node);
+      Serial.println("Attempting to reach sensors");
+      delay(1000);
+    }
+   if(is_sent){
     Serial.println("Send to sensors success!");
- 
-    //delay(2000); //for testing fail states
-    unsigned long start_listening = millis();
-          
-    network.update();
-    while(!network.available() && millis()-start_listening < 10000) {
+//   
+  //delay(2000); //for testing fail states
+  unsigned long start_listening = millis();
+   
+  
+  network.update();
+  while(  (!network.available()) && millis()-start_listening <10000  ) {
       network.update();
       //LOOM_DEBUG_Println2("time waiting: ", millis()-start_listening);
       Serial.println("Waiting to receive something on sensors end.");
       delay(500);
-    }
-  }
-
-  OSCBundle sensor_bundle;
-  nrf_receive_bundle(&sensor_bundle);
-  print_bundle(&sensor_bundle);
-  Serial.println("Received sensor data!");
   
-  // Send out data over wifi. Don't worry about the multiple transactions happening every second.
-  WiFiClient hyperrail_client;
-  IPAddress hyperrail_ip(config.ipAddress[0], config.ipAddress[1], config.ipAddress[2], config.ipAddress[3]);
-  hyperrail_client.connect(hyperrail_ip, 3000);
+  }
+   }
 
-  String sensor_data = "{\"stuff\":\"thing\"}";
-  String payload = "POST /runs/create HTTP/1.1\n"
-                 "Content-Type: applciation/json\n"
-                 + sensor_data + "\n"
-                 "\n";
-  hyperrail_client.println(payload);
-  hyperrail_client.stop();
-
+   OSCBundle sensor_bundle;
+   nrf_receive_bundle(&sensor_bundle);
+   print_bundle(&sensor_bundle);
+   Serial.println("Received sensor data!");
+   
+   bool is_uploaded = nrf_send_bundle(&sensor_bundle,ethernet_hub_node);
+   if(is_uploaded){
+    Serial.println("Send to ethernet hub success!");
+   }
+    else{
+      nrf_send_bundle(&sensor_bundle,ethernet_hub_node);
+      Serial.println("Attempting to reach ethernet hub");
+    }
 
    
-  bool is_uploaded = nrf_send_bundle(&sensor_bundle,ethernet_hub_node);
-  if(is_uploaded){
-    Serial.println("Send to ethernet hub success!");
+
   }
-  else {
-    nrf_send_bundle(&sensor_bundle,ethernet_hub_node);
-    Serial.println("Attempting to reach ethernet hub");
-  }
-}
    //}
    
 //   while(network.available()){
@@ -602,13 +420,17 @@ transmit_nRF_sensors();
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-  for (x = 0; x < steps_total; x++)
+  x = 0;
+  for (x = 1; x <= steps_total; x++)
   {
     digitalWrite(stp, HIGH);
     delayMicroseconds(delay_time);
     digitalWrite(stp, LOW);
     delayMicroseconds(delay_time);
+
     //Serial.println(x);//for testing
+
+
   }
   current_step = 0;
   location = sensors_position(current_step);
@@ -643,7 +465,7 @@ void travelHyperRail_slow(long steps_total, int delay_time)
 
   digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
   unsigned long startTime = micros();// start time // for testing
-  for (x = 0; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
+  for (x = 1; x <= steps_total; x++) //Loop the forward stepping enough times for motion to be visible
   {
     digitalWrite(stp, HIGH); //Trigger one step forward
     delay(delay_time_milli);
@@ -653,11 +475,14 @@ void travelHyperRail_slow(long steps_total, int delay_time)
   }
 
   unsigned long endTime = micros();//end time//for testing
+
   unsigned long totalTime = endTime - startTime;//for testing
   Serial.print("Microseconds: ");//for testing
   Serial.println(totalTime);//for testing
   Serial.print("Seconds: " );//for testing
   Serial.println(float(totalTime / (1 * pow(10,6)))); //for testing
+
+
 
   //Waits 100 milliseconds before going back the other way
   delay(500);
@@ -666,7 +491,8 @@ void travelHyperRail_slow(long steps_total, int delay_time)
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-  for (x = 0; x < steps_total; x++)
+  x = 0;
+  for (x = 1; x <= steps_total; x++)
   {
     digitalWrite(stp, HIGH);
     delay(delay_time_milli);
@@ -834,7 +660,7 @@ Serial.println("Moving Rail...");
     current_step += interval_steps;
     location = sensors_position(current_step);
 
-    for (x = 0; x < interval_steps; x++) //Loop the forward stepping enough times for motion to be visible
+    for (x = 1; x <= interval_steps; x++) //Loop the forward stepping enough times for motion to be visible
     {
       digitalWrite(stp, HIGH); //Trigger one step forward
       delayMicroseconds(delay_time);
@@ -861,7 +687,8 @@ Serial.println("Moving Rail...");
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-  for (x = 0; x < steps_total; x++)
+  x = 0;
+  for (x = 1; x <= steps_total; x++)
   {
     digitalWrite(stp, HIGH);
     delayMicroseconds(delay_time);
@@ -877,16 +704,4 @@ delay(time_interval*1000);
 //Serial.println("interval test");
 //Serial.println(time_interval*1000);
   }
-}
-
-// Pretty print Wifi info
-void printWiFiStatus() {
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  // print your WiFi shield's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
 }
