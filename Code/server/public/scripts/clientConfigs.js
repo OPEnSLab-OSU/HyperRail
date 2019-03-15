@@ -98,8 +98,6 @@ function createConfig() {
 	}
 }
 
-
-
 //Modify Configuration form functions
 function loadConfig() {
 	var sensors = "";
