@@ -22,3 +22,5 @@ module.exports.address = () => {
     address = address.split('.').map((a) => parseInt(a, 10));
     return address;
 };
+
+// module.exports.address();

@@ -9,7 +9,7 @@ const bot_ip = process.env.BOT_IP_ADDRESS || '192.168.1.1';
 // Trigger a run based on a config. 
 /* 
 {
-    ipAddres: [integer],
+    ipAddress: [integer],
     option: integer,
     totalSteps: integer,
     delayTime: integer,
@@ -26,29 +26,36 @@ const bot_ip = process.env.BOT_IP_ADDRESS || '192.168.1.1';
 */
 
 router.post('/execute', (req, res) => {
-    let config = req.body.config;
+    let config = req.body;
     const address = ip.address();
     if(!address) {
         logger.error('IP Address for the host could not be found');
         const status = 500;
-        const msg = logger.buildPayload(loggerl.level.OK, 'Could not find host IP Address programmatically');
+        const msg = logger.buildPayload(loggerl.level.ERROR, 'Could not find host IP Address programmatically');
         res.status(status).send(msg);
     } else {
         config.ipAddress = address;
 
-        axios.post(`${bot_ip}/execute`, config)
-            .then((bot_res) => {
-                logger.ok(bot_res);
-                const status = 200;
-                
-                res.status(status).send(bot_res);
+        axios.post(`http://${bot_ip}/execute`, config)
+            .then((botRes) => {
+                const str = 'Config uploaded to bot, executing...';
+                logger.ok(str);
+                let status;
+                let msg;
+                if(botRes.data.Status === "Recieved"){
+                    status = 200;
+                    msg = logger.buildPayload(logger.level.OK, str);
+                } else {
+                    status = 500;
+                    msg = logger.buildPayload(logger.level.ERROR, 'Connected to bot, but upload failed');
+                }
+                res.status(status).send(msg);
             })
             .catch((err) => {
                 const str = 'Error uploading config to bot';
-                logger.error(str);
-                logger.error(err);
+                logger.error(`${str}: ${err}`);
                 const status = 500;
-                const msg = logger.buildPayload(logger.level.OK, str);
+                const msg = logger.buildPayload(logger.level.ERROR, str);
 
                 res.status(status).send(msg);
             });
