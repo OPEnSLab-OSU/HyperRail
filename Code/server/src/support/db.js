@@ -12,7 +12,7 @@ let client = null;
  * 
  * At least one field must be set
  * Tags are indexed and therefore more performant
- * Treat tags as metadata
+ * Treat tags as metadata, used for queries
  */
 
 // Specify the schema for the following measurments
@@ -26,7 +26,7 @@ const metadata = {
             fields: {
                 value: Influx.FieldType.STRING,
             },
-            tags: ['bot', 'type', 'name']
+            tags: ['botName', 'runName']
         }
     ]
 };

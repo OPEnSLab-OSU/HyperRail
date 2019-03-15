@@ -9,6 +9,8 @@ const bot_ip = process.env.BOT_IP_ADDRESS || '192.168.1.1';
 // Trigger a run based on a config. 
 /* 
 {
+    runName: string,
+    botName: string,
     ipAddress: [integer],
     option: integer,
     totalSteps: integer,
