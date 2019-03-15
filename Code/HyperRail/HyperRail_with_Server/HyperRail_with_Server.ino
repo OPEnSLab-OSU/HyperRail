@@ -107,7 +107,12 @@ char inData[80];//This will be used for the incoming data from processing
 int current_step = 0;
 
 struct Config {
+  // Metadata used to pass info around
   int ipAddress[4];
+  String runName;
+  String botName;
+
+  // Info for the actual bot
   int option;
   int totalSteps;
   int delayTime;
@@ -124,7 +129,7 @@ struct Config {
 
 Config config;
 
-// WiFi globals
+// WiFi hotspot globals
 const char ssid[] = "HyperRail AP";
 int wifiStatus = WL_IDLE_STATUS;
 IPAddress hyperrailIp(192, 168, 1, 1);
@@ -142,24 +147,20 @@ void setup() {
   //Serial.println("OPEnS Lab HyperRails");
 
   //Comment the next line to run without serial monitor
-  while (!Serial) {
-    ;//Do nothing. Just wait for the user to open the serial monitor.
-  }
+  while (!Serial);
 
   /******
-     Initialize WiFi Hotspot
-  */
+  * Initialize WiFi Hotspot
+  *******/
   WiFi.setPins(8, 7, 4, 2);
   WiFi.config(hyperrailIp);
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
-    // don't continue:
     while (true);
   }
   wifiStatus = WiFi.beginAP(ssid);
   if (wifiStatus != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
-    // don't continue
     while (true);
   }
 
@@ -167,8 +168,6 @@ void setup() {
   delay(5000);
   server.begin();
   printWiFiStatus();
-
-
 
   SPI.begin();
   radio.begin();
@@ -182,28 +181,6 @@ void setup() {
 
 //Main loop
 void loop() {
-
-  //delay(1500);//for testing
-  //Serial.print("This is what is the value of Serial.available(): " );//for testing
-  //Serial.println(Serial.available());//for testing
-
-  //Wee need to wait for the serial port to start reading
-  //beacuse otherwise we don't see the "R"
-  //This is beause the M0 is REALLY FAST!
-  while (!Serial)
-  {
-    ;
-  }
-
-
-  //  //Tell Processing that we're ready
-  //  Serial.println("R");
-  //
-  //  while (Serial.available() == 0)
-  //  {
-  //    ;//Serial.println("Waiting");//for testing
-  //  }
-
   //while(Serial.available() >= 2){
   //Serial.println("This is what is stored in \"user_input\" before the read : " );// for testing
   //Serial.println(user_input);//for testing
@@ -213,8 +190,6 @@ void loop() {
 
   decoder();//This is where the data gets parsed to get the values from the GUI
   return;
-
-
 
   digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control
   if (option == 1) {
@@ -272,13 +247,7 @@ void decoder()
   //    data_str.toCharArray(inData, 80);//converts the string into char array
   //
   //  }
-  //  //Serial.print("Here");
-  //  //int numVals = sscanf(inData, "[O:%d,S:%ld,D:%d,I:%d,IS:%ld,ST:%d,CO2:%d,Lux:%d,Part:%d,HT:%d*/ ", &option, &total_steps, &delay_time, &intervals_flag, &interval_steps, &stops, &co2_activated, &lux_activated, &particle_activated, &humidity_activated);
-  //  int numVals = sscanf(inData, "[O:%d,S:%ld,D:%d,I:%d,IS:%ld,ST:%d,CO2:%d,Lux:%d,Part:%d,H:%d,T:%d,TI:%d",
-  //                                &option, &total_steps, &delay_time, &intervals_flag, &interval_steps,
-  //                                &stops, &co2_activated, &lux_activated, &particle_activated, &humidity_activated,
-  //                                &temperature_activated, &time_interval);
-
+ 
   bool newData = false;
   String line = "";
   WiFiClient client = server.available();   // listen for incoming clients
@@ -319,11 +288,22 @@ void decoder()
       client.stop();
     }
     config = parseRequest(line);
+
+    // Temporary method to use the pre-existing globals
+    option = config.option;
+    total_steps = config.totalSteps;
+    delay_time = config.delayTime;
+    intervals_flag = config.intervalFlag;
+    interval_steps = config.intervalSteps;
+    stops = config.stops;
+    co2_activated = config.co2Activated;
+    lux_activated = config.luxActivated;
+    particle_activated = config.particleActivated;
+    humidity_activated = config.humidityActivated;
+    temperature_activated = config.temperatureActivated;
+    time_interval = config.timeInterval;
   }
 
-  if (config.option == NULL) {
-    return;
-  }
   //  Serial.print("Option: ");
   //  Serial.println(config.option);
   //  Serial.print("Steps: ");
@@ -348,31 +328,6 @@ void decoder()
   //  Serial.println(config.temperatureActivated);
   //  Serial.print("Time Interval: ");
   //  Serial.println(config.timeInterval);
-
-  //  Serial.print("Number of values parsed: ");
-  //  Serial.println(numVals);
-  //  //Serial.print("total_steps: ");
-  //  //Serial.println(total_steps);
-  //  //Serial.print("delay_time_A: ");
-  //  //Serial.println(delay_time);
-  //  Serial.print("intervals_flag: ");
-  //  Serial.println(intervals_flag);
-  //  //Serial.print("interval_steps: ");
-  //  //Serial.println(interval_steps);
-  //  Serial.print("Stops: ");
-  //  Serial.println(stops);
-  //  Serial.print("CO2: ");
-  //  Serial.println(co2_activated);
-  //  Serial.print("Lux: ");
-  //  Serial.println(lux_activated);
-  //  Serial.print("Particle: " );
-  //  Serial.println(particle_activated);
-  //  Serial.print("Humidity: ");
-  //  Serial.println(humidity_activated);
-  //  Serial.print("Temperature: " );
-  //  Serial.println(temperature_activated);
-  //  Serial.print("Time Interval Received: " );
-  //  Serial.println(time_interval);
 }
 
 Config parseRequest(String request) {
@@ -385,6 +340,9 @@ Config parseRequest(String request) {
     config.ipAddress[1] = obj["ipAddress"][1];
     config.ipAddress[2] = obj["ipAddress"][2];
     config.ipAddress[3] = obj["ipAddress"][3];
+
+    config.runName = obj["runName"];
+    config.botName = obj["botName"];
 
     config.option = obj["option"];
     config.totalSteps = obj["totalSteps"];
@@ -451,28 +409,6 @@ void transmit_nRF_sensors() {
   //LOOM_DEBUG_Println2("Location: ", location);
   //print_bundle(&bndl);
 
-// TODO: Swap out nrf sending to ethernet hub to wifi back to client. Code example below
-//IPAddress hyperrail_ip(config.ipAddress[0], config.ipAddress[1], config.ipAddress[2], config.ipAddress[3]);
-//    WiFiClient hyperrail_host;
-//
-//    Serial.println("Connecting...");
-//    if (hyperrail_host.connect(hyperrail_ip, 3000)) {
-//      Serial.println("Sending get request");
-//      hyperrail_host.print("GET /test HTTP/1.1\n\n");
-//
-//      while (hyperrail_host.available()) {
-//        Serial.print((char) hyperrail_host.read());
-//      }
-//
-//      if (hyperrail_host.connected()) {
-//        Serial.println("Disconnecting...");
-//        hyperrail_host.stop();
-//      }
-//    } else {
-//      Serial.println("Can't connect");
-//    }
-
-
   bool is_sent = nrf_send_bundle(&bndl, sensor_node);
   while (!is_sent) {
     network.update();
@@ -488,7 +424,7 @@ void transmit_nRF_sensors() {
 
 
     network.update();
-    while (  (!network.available()) && millis() - start_listening < 10000  ) {
+    while (!network.available() && millis() - start_listening < 10000) {
       network.update();
       //LOOM_DEBUG_Println2("time waiting: ", millis()-start_listening);
       Serial.println("Waiting to receive something on sensors end.");
@@ -500,6 +436,31 @@ void transmit_nRF_sensors() {
   nrf_receive_bundle(&sensor_bundle);
   print_bundle(&sensor_bundle);
   Serial.println("Received sensor data!");
+
+  // TODO: Swap out "nrf sending to ethernet hub" to "wifi back to client". Code example below
+//  IPAddress hyperrail_ip(config.ipAddress[0], config.ipAddress[1], config.ipAddress[2], config.ipAddress[3]);
+//  WiFiClient hyperrail_host;
+//  
+//  Serial.println("Connecting...");
+//  if(hyperrail_host.connect(hyperrail_ip, 3000)) {
+//    Serial.println("Sending get request");
+//  
+//    String sensor_data = "POST /runs/create HTTP/1.1\n"
+//                         "Content-Type: application/json\n"
+//                         "{\"Key\": \"Value\"}"
+//                         "\n"
+//    hyperrail_host.println(sensor_data);
+//    // Don't care about the response
+//    while (hyperrail_host.available()) {
+//      Serial.print((char) hyperrail_host.read());
+//    } 
+//    if (hyperrail_host.connected()) {
+//      Serial.println("Disconnecting...");
+//      hyperrail_host.stop();
+//    }
+//  } else {
+//    Serial.println("Can't connect");
+//  }
 
   bool is_uploaded = nrf_send_bundle(&sensor_bundle, ethernet_hub_node);
   if (is_uploaded) {
@@ -593,8 +554,7 @@ void travelHyperRail(long steps_total, int delay_time)
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-  x = 0;
-  for (x = 1; x <= steps_total; x++)
+  for (x = 0; x < steps_total; x++)
   {
     digitalWrite(stp, HIGH);
     delayMicroseconds(delay_time);
@@ -638,7 +598,7 @@ void travelHyperRail_slow(long steps_total, int delay_time)
 
   digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
   unsigned long startTime = micros();// start time // for testing
-  for (x = 1; x <= steps_total; x++) //Loop the forward stepping enough times for motion to be visible
+  for (x = 0; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
   {
     digitalWrite(stp, HIGH); //Trigger one step forward
     delay(delay_time_milli);
@@ -664,8 +624,7 @@ void travelHyperRail_slow(long steps_total, int delay_time)
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-  x = 0;
-  for (x = 1; x <= steps_total; x++)
+  for (x = 0; x < steps_total; x++)
   {
     digitalWrite(stp, HIGH);
     delay(delay_time_milli);
@@ -828,12 +787,12 @@ void intervals_travelHyperRail(long steps_total, int delay_time, long interval_s
     Serial.println("Moving Rail...");
     /// move HyperRail forward ///
     current_step = 0;
-    for (int s = 1; s <= stops; s++) {
+    for (int s = 0; s < stops; s++) {
       digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
       current_step += interval_steps;
       location = sensors_position(current_step);
 
-      for (x = 1; x <= interval_steps; x++) //Loop the forward stepping enough times for motion to be visible
+      for (x = 0; x < interval_steps; x++) //Loop the forward stepping enough times for motion to be visible
       {
         digitalWrite(stp, HIGH); //Trigger one step forward
         delayMicroseconds(delay_time);
@@ -854,8 +813,7 @@ void intervals_travelHyperRail(long steps_total, int delay_time, long interval_s
     //This for loop will bring the carriage back to
     // the orignal postion
     digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-    x = 0;
-    for (x = 1; x <= steps_total; x++)
+    for (x = 0; x < steps_total; x++)
     {
       digitalWrite(stp, HIGH);
       delayMicroseconds(delay_time);
