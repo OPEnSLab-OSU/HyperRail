@@ -5,7 +5,6 @@ const express = require('express');
 const router = express.Router();
 
 const configDir = path.join(process.cwd(), '/configs');
-const sensorList = path.join(process.cwd(), '/sensors.json');
 
 /* JSON format expected for each posted data
 {
@@ -34,7 +33,7 @@ router.post('/create', (req, res) => {
 
     const filePath = path.join(configDir, fileName);
     
-    ensureDirs();
+	ensureDirs();
     logger.ok(`Created config: ${fileName}`);
 
 	// Check if the config name exists
@@ -60,11 +59,58 @@ router.post('/create', (req, res) => {
     }
 });
 
+// Edit a config file for the HyperRail
+router.post('/edit', (req, res) => {
+    const newFileName = `${req.body.configName}.json`;
+    const filePath = path.join(configDir, newFileName);
+	
+	const oldFileName = `${req.body.oldConfigName}.json`;
+    const oldFilePath = path.join(configDir, oldFileName);
+	
+	const data = req.body.data;
+    
+	ensureDirs();
+
+	// Check if the config name exists
+    if(fs.existsSync(filePath)) {
+        const msg = logger.buildPayload(logger.level.ERROR, 'Config already exists');
+        const status = 403;
+        res.status(status).send(msg);
+    } else {
+		let msg1, msg2, status;
+		// Remove the old config file
+		logger.ok(`Removed config: ${oldFileName}`);
+		fs.unlink(oldFilePath, (err) => {
+			if(err) {
+				logger.error(err);
+				
+				msg1 = logger.buildPayload(logger.level.ERROR, 'Error removing old config file\n');
+			} else {
+				msg1 = logger.buildPayload(logger.level.OK, 'Config removed\n');
+			}
+		});
+		// If the config doesn't exist, create a new file
+		logger.ok(`Created config: ${newFileName}`);
+        fs.writeFile(filePath, JSON.stringify(data), (err) => {
+            if(err) {
+                logger.error(err);
+
+                msg2 = logger.buildPayload(logger.level.ERROR, 'Error writing config to file');
+                status = 500;
+            } else {
+                msg2 = logger.buildPayload(logger.level.OK, 'Config created');
+                status = 201;
+            }
+            res.status(status).send([msg1, msg2]);
+        });
+    }
+});
+
 // Read a config file
-router.get('/read', (req, res) => {
+router.post('/read', (req, res) => {
     const fileName = `${req.body.configName}.json`;
     const filePath = path.join(configDir, fileName);
-
+	
     ensureDirs();
 
     if(fs.existsSync(filePath)) {
@@ -86,26 +132,6 @@ router.get('/read', (req, res) => {
         const status = 404;
         res.status(status).send(msg);
     }
-});
-
-// List all of the current sensors in the sensor file
-router.get('/getSensors', (req, res) => {
-    ensureDirs();
-    fs.readFile(sensorList, 'utf8', (err, data) => {
-		let msg, status;
-		
-		//If there was an error reading, notify the user
-        if(err) {
-            logger.error(err);
-            msg = logger.buildPayload(logger.level.ERROR, 'Error reading file');
-            status = 500;
-        } else {
-			//If there was no issue, send the data
-            msg = JSON.parse(data);
-            status = 200;
-        }   
-        res.status(status).send(msg);
-	});
 });
 
 // List all of the current config files
