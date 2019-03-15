@@ -10,17 +10,32 @@ const sensorList = path.join(process.cwd(), '/sensors.json');
 /* JSON format expected for each posted data
 {
     "configName": "string",     // Name of the configuration, this is unique
-    "data": {}                  // Unknown, needs discussion. Will probably be stored raw.
+    "data": {
+        option: integer,
+        totalSteps: integer,
+        delayTime: integer,
+        intervalFlag: integer,
+        intervalSteps: integer,
+        stops: integer,
+        luxActivated: integer,
+        co2Activated: integer,
+        particleActivated: integer,
+        humidityActivated: integer,
+        temperatureActivated: integer,
+        timeInterval: integer,
+    }
 }
 */
 
 // Create a config file for the HyperRail
 router.post('/create', (req, res) => {
-	logger.ok(JSON.stringify(req.body.configName));
     const fileName = `${req.body.configName}.json`;
     const data = req.body.data;
 
     const filePath = path.join(configDir, fileName);
+    
+    ensureDirs();
+    logger.ok(`Created config: ${fileName}`);
 
 	// Check if the config name exists
     if(fs.existsSync(filePath)) {
@@ -50,6 +65,8 @@ router.get('/read', (req, res) => {
     const fileName = `${req.body.configName}.json`;
     const filePath = path.join(configDir, fileName);
 
+    ensureDirs();
+
     if(fs.existsSync(filePath)) {
         fs.readFile(filePath, 'utf8', (err, data) => {
             let msg, status;
@@ -73,8 +90,8 @@ router.get('/read', (req, res) => {
 
 // List all of the current sensors in the sensor file
 router.get('/getSensors', (req, res) => {
-	// Read the sensor file
-	fs.readFile(sensorList, 'utf8', (err, data) => {
+    ensureDirs();
+    fs.readFile(sensorList, 'utf8', (err, data) => {
 		let msg, status;
 		
 		//If there was an error reading, notify the user
@@ -93,6 +110,7 @@ router.get('/getSensors', (req, res) => {
 
 // List all of the current config files
 router.get('/list', (req, res) => {
+    ensureDirs();
     fs.readdir(configDir, 'utf8', (err, data) => {
         let msg, status;
         if(err) {
@@ -110,3 +128,8 @@ router.get('/list', (req, res) => {
 
 module.exports = router;
 
+function ensureDirs() {
+    if(!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir);
+    }
+}
