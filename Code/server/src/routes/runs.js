@@ -10,36 +10,23 @@ const measure = 'run';
 {
     "botName": "string",                        // Name of the hyper rail that made this request
     "runName": "string",                        // Name of the run. User defined.
-    "data": [                            
-        {
-            "type": "sensor type",              // Each sensor get's it's own array of values
-            "time": "unix timestamp",           // Time the sample was taken. Format is UNIX timestamp in seconds
-            "value": "value"                    // Value receieved from sensor
-        }
-    ]
+    "data": { some data }
 }
 */
 
 //Creating a data entry in the runs database
 router.post('/create', (req, res) => {
     const client = db.get();
-    const data = req.body.data;
-    let formatData = [];
-
-    // Format given data to InfluxDB format
-    data.forEach((elem) => {
-        formatData.push({
-            fields: {
-                value: elem.value,
-            },
-            tags: {
-                type: elem.type,
-                bot: req.body.botName,
-                name: req.body.runName
-            },
-            timestamp: new Date(elem.time * 1000)
-        });
-    });
+    const formatData = [{
+        fields: {
+            value: req.body.data,
+        },
+        tags: {
+            botName: req.body.botName,
+            runName: req.body.runName
+        },
+        timestamp: new Date(elem.time * 1000)
+    }];
 
     // Write to database
     client.writeMeasurement(measure, formatData)
