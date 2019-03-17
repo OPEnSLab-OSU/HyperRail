@@ -48,17 +48,18 @@ router.post('/create', (req, res) => {
 // Search the database for data entries
 router.get('/search', (req, res) => {
     const client = db.get();
-    let dbQuery = `SELECT * FROM ${measure}`;
+    let dbQuery = `SELECT * FROM ${measure} WHERE `;
 	let empty = true;
-    
-	dbQuery += ' WHERE ';
+	let filter = req.query['filter'];
+
 	// Build query from parameters (if parameters exist)
 	for(let key in req.query) {
-		if(req.query[key] != '') {
+		if(req.query[key] != '' && key != 'filter') {
 			empty = false;
-			// dbQuery += `"${key}"='${req.query[key]}' AND `;
-			// Equivalent to a LIKE query
-			dbQuery += `"${key}" =~ /${req.query[key]}/ AND `;
+			if(filter == '1')	//Match filter
+				dbQuery += `"${key}" = '${req.query[key]}' AND `;
+			else				//Contains filter, equivalent to a LIKE query
+				dbQuery += `"${key}" =~ /${req.query[key]}/ AND `;
 		}
 	}
 	// Trim extra ' AND ' or ' WHERE ' at end of string if parameters exist or not
