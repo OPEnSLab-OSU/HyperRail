@@ -17,54 +17,87 @@ function loadConfigList() {
 
 function createConfig() {
 	var err = "";	//Strings to store error messages
+	var optErr = "";
+	var numErr = "";
 	
-	if($.trim($("#configName").val()) == "")		//Check if the name is empty
-		err = "Config Name, ";
-	if($("#option").val() == "")
-		err += "Option, ";
-	if($("#delayTime").val() == "")
-		err += "Delay Time, ";
-	if($("#totalSteps").val() == "")
-		err += "Steps to Traverse Rail, ";
-	if($("#stops").val() == "")
-		err += "Number of Intervals, ";
-	if($("#intervalSteps").val() == "")
-		err += "Steps per Interval, ";
-	if($("#timeInterval").val() == "")
-		err += "Time between Intervals, ";
-
-	if(err != "") {		//If there were any errors specified
-		err = err.slice(0, -2);
-		alert(err + " must be specified.");		//Alert the user
-		return;
-	}
-	
-	if($("#intervalFlag").prop("checked") == false)
+	if($("#intervalFlag").prop("checked") == false)	//Convert Interval flag checkbox status to integer
 		var intervalFlag = 0;
 	else
 		var intervalFlag = 1;
-	if($("#luxActivated").prop("checked") == false)
+	
+	if($.trim($("#configName").val()) == "")		//Check if the Config Name is empty
+		err = "Config Name, ";
+		
+	if($("#option").val() == "")					//Check if the option number is empty
+		err += "Option, ";
+	else if ($("#option").val() < 1 || $("#option").val() > 5)	//If not empty, check if it is between 1 and 5
+		optErr = "Option must be an integer between 1 and 5.\n";
+	
+	if($("#totalSteps").val() == "")				//Check if the Steps to Traverse Rail is empty
+		err += "Steps to Traverse Rail, ";
+	else if ($("#totalSteps").val() < 0)			//If not empty, check if it is non-negative
+		numErr += "Steps to Traverse Rail, ";
+	
+	if($("#delayTime").val() == "")					//Check if the Time between Steps is empty
+		err += "Time between Steps, ";
+	else if ($("#delayTime").val() < 0)				//If not empty, check if it is non-negative
+		numErr += "Time between Steps, ";
+	
+	if(intervalFlag == 1){	//Interval settings only matter if intervals are used
+		if($("#stops").val() == "")					//Check if the Number of Intervals is empty
+			err += "Number of Intervals, ";
+		else if ($("#stops").val() < 0)				//If not empty, check if it is non-negative
+			numErr += "Number of Intervals, ";
+		
+		if($("#intervalSteps").val() == "")			//Check if the Steps per Intervals is empty
+			err += "Steps per Interval, ";
+		else if ($("#intervalSteps").val() < 0)		//If not empty, check if it is non-negative
+			numErr += "Steps per Interval, ";
+		
+		if($("#timeInterval").val() == "")			//Check if the Time between Intervals is empty
+			err += "Time between Intervals, ";
+		else if ($("#timeInterval").val() < 0)		//If not empty, check if it is non-negative
+			numErr += "Time between Intervals, ";
+	}
+
+	if(err != "" || numErr != "" || optErr != "") {		//If there were any errors specified
+		if(err != ""){
+			err = err.slice(0, -2) + " must be specified.";	//Format the error
+			if(numErr != "")
+				err += "\n";
+		}
+		if(numErr != "")									//Format number errors
+			numErr = numErr.slice(0, -2) + " must be a non-negative number.";
+		alert(optErr + err + numErr);		//Alert the user
+		return;
+	}
+	
+	if($("#luxActivated").prop("checked") == false)		//Convert Lux Sensor flag checkbox status to integer
 		var luxActivated = 0;
 	else
-		var luxActivated = 1;	
-	if($("#co2Activated").prop("checked") == false)
+		var luxActivated = 1;
+	
+	if($("#co2Activated").prop("checked") == false)		//Convert CO2 Sensor flag checkbox status to integer
 		var co2Activated = 0;
 	else
 		var co2Activated = 1;
-	if($("#particleActivated").prop("checked") == false)
+	
+	if($("#particleActivated").prop("checked") == false)	//Convert Particle Sensor flag checkbox status to integer
 		var particleActivated = 0;
 	else
 		var particleActivated = 1;
-	if($("#humidityActivated").prop("checked") == false)
+	
+	if($("#humidityActivated").prop("checked") == false)	//Convert Humidity Sensor flag checkbox status to integer
 		var humidityActivated = 0;
 	else
 		var humidityActivated = 1;
-	if($("#temperatureActivated").prop("checked") == false)
+	
+	if($("#temperatureActivated").prop("checked") == false)	//Convert Temperature Sensor flag checkbox status to integer
 		var temperatureActivated = 0;
 	else
 		var temperatureActivated = 1;
 	
-	var info = {	//Object to store data
+	var info = {	//Object to store ALL data, except config name, and pass to AJAX request
 		option: parseInt($("#option").val()),
 		totalSteps: parseInt($("#totalSteps").val()),
 		delayTime: parseInt($("#delayTime").val()),
@@ -128,41 +161,41 @@ function loadConfig() {
 			configName: $("#configList option:selected").text()
 		}),
 		success: function(config){	//Once the server is finished loading the config file, fill in the fields
-			$("#modifyConfigName").val($("#configList option:selected").text());
-			$("#modifyConfigName").prop("placeholder", $("#configList option:selected").text());
-			$("#modifyOption").val(config.option);
-			$("#modifyDelayTime").val(config.delayTime);
-			$("#modifyTotalSteps").val(config.totalSteps);
+			$("#modifyConfigName").val($("#configList option:selected").text());					//Fill in Config Name field
+			$("#modifyConfigName").prop("placeholder", $("#configList option:selected").text());	//Fill in Config Name field placeholder, used in server to delete old file
+			$("#modifyOption").val(config.option);					//Fill in Option value
+			$("#modifyDelayTime").val(config.delayTime);			//Fill in Time between Steps
+			$("#modifyTotalSteps").val(config.totalSteps);			//Fill in Steps to Traverse Rail
 			
-			if(config.intervalFlag == 0)
+			if(config.intervalFlag == 0)							//Convert Interval Flag integer to checkbox status
 				$("#modifyIntervalFlag").prop("checked", false);
 			else
 				$("#modifyIntervalFlag").prop("checked", true);
-			$("#modifyStops").val(config.stops);
-			$("#modifyIntervalSteps").val(config.intervalSteps);
-			$("#modifyTimeInterval").val(config.timeInterval);
+			$("#modifyStops").val(config.stops);					//Fill in Number of Intervals
+			$("#modifyIntervalSteps").val(config.intervalSteps);	//Fill in Steps per Interval
+			$("#modifyTimeInterval").val(config.timeInterval);		//Fill in Time between Intervals
 			
-			if(config.luxActivated == 0)
+			if(config.luxActivated == 0)							//Convert Lux Sensor Flag integer to checkbox status
 				$("#modifyLuxActivated").prop("checked", false);
 			else
 				$("#modifyLuxActivated").prop("checked", true);
 		
-			if(config.co2Activated == 0)
+			if(config.co2Activated == 0)							//Convert CO2 Sensor Flag integer to checkbox status
 				$("#modifyCo2Activated").prop("checked", false);
 			else
 				$("#modifyCo2Activated").prop("checked", true);
 		
-			if(config.particleActivated == 0)
+			if(config.particleActivated == 0)						//Convert Particle Sensor Flag integer to checkbox status
 				$("#modifyParticleActivated").prop("checked", false);
 			else
 				$("#modifyParticleActivated").prop("checked", true);
 		
-			if(config.humidityActivated == 0)
+			if(config.humidityActivated == 0)						//Convert Humidity Sensor Flag integer to checkbox status
 				$("#modifyHumidityActivated").prop("checked", false);
 			else
 				$("#modifyHumidityActivated").prop("checked", true);
 		
-			if(config.temperatureActivated == 0)
+			if(config.temperatureActivated == 0)					//Convert Temperature Sensor Flag integer to checkbox status
 				$("#modifyTemperatureActivated").prop("checked", false);
 			else
 				$("#modifyTemperatureActivated").prop("checked", true);
@@ -174,59 +207,92 @@ function loadConfig() {
 
 function saveConfig() {
 	var err = "";	//Strings to store error messages
+	var optErr = "";
+	var numErr = "";
 	var nameErr = "";
 	
-	if($.trim($("#modifyConfigName").val()) == "")		//Check if the name is empty
-		err = "Config Name, ";
-	if($("#modifyOption").val() == "")
-		err += "Option, ";
-	if($("#modifyDelayTime").val() == "")
-		err += "Delay Time, ";
-	if($("#modifyTotalSteps").val() == "")
-		err += "Steps to Traverse Rail, ";
-	if($("#modifyStops").val() == "")
-		err += "Number of Intervals, ";
-	if($("#modifyIntervalSteps").val() == "")
-		err += "Steps per Interval, ";
-	if($("#modifyTimeInterval").val() == "")
-		err += "Time between Intervals, ";
-
-	if($.trim($("#modifyConfigName").val()) == $("#modifyConfigName").prop("placeholder"))		//Check if the name is the same
-		nameErr = "Please change the Config Name.";
-	
-	if(err != "" || nameErr != "") {		//If there were any errors specified
-		if(err != "")
-			err = err.slice(0, -2) + " must be specified.\n";
-		alert(err + nameErr);		//Alert the user
-		return;
-	}
-	
-	if($("#modifyIntervalFlag").prop("checked") == false)
+	if($("#modifyIntervalFlag").prop("checked") == false)	//Convert Interval flag checkbox status to integer
 		var intervalFlag = 0;
 	else
 		var intervalFlag = 1;
-	if($("#modifyLuxActivated").prop("checked") == false)
+	
+	if($.trim($("#modifyConfigName").val()) == "")		//Check if the Config Name is empty
+		err = "Config Name, ";
+		
+	if($("#modifyOption").val() == "")					//Check if the option number is empty
+		err += "Option, ";
+	else if ($("#modifyOption").val() < 1 || $("#modifyOption").val() > 5)	//If not empty, check if it is between 1 and 5
+		optErr += "Option must be an integer between 1 and 5.\n";
+	
+	if($("#modifyTotalSteps").val() == "")				//Check if the Steps to Traverse Rail is empty
+		err += "Steps to Traverse Rail, ";
+	else if ($("#modifyTotalSteps").val() < 0)			//If not empty, check if it is non-negative
+		numErr += "Steps to Traverse Rail, ";
+	
+	if($("#modifyDelayTime").val() == "")				//Check if the Time between Steps is empty
+		err += "Time between Steps, ";
+	else if ($("#modifyDelayTime").val() < 0)			//If not empty, check if it is non-negative
+		numErr += "Time between Steps, ";
+	
+	if(intervalFlag == 1){	//Interval settings only matter if intervals are used
+		if($("#modifyStops").val() == "")				//Check if the Number of Intervals is empty
+			err += "Number of Intervals, ";
+		else if ($("#modifyStops").val() < 0)			//If not empty, check if it is non-negative
+			numErr += "Number of Intervals, ";
+		
+		if($("#modifyIntervalSteps").val() == "")		//Check if the Steps per Intervals is empty
+			err += "Steps per Interval, ";
+		else if ($("#modifyIntervalSteps").val() < 0)	//If not empty, check if it is non-negative
+			numErr += "Steps per Interval, ";
+		
+		if($("#modifyTimeInterval").val() == "")		//Check if the Time between Intervals is empty
+			err += "Time between Intervals, ";
+		else if ($("#modifyTimeInterval").val() < 0)	//If not empty, check if it is non-negative
+			numErr += "Time between Intervals, ";
+	}
+	
+
+	if($.trim($("#modifyConfigName").val()) == $("#modifyConfigName").prop("placeholder"))		//Check if the name is the same
+		nameErr = "Please change the Config Name.\n";
+	
+	if(err != "" || nameErr != "" || optErr != "" || numErr != "") {		//If there were any errors specified
+		if(err != ""){
+			err = err.slice(0, -2) + " must be specified.";	//Format the error
+			if(numErr != "")
+				err += "\n";
+		}
+		if(numErr != "")
+			numErr = numErr.slice(0, -2) + " must be a non-negative number.";	//Format number errors
+		alert(nameErr + optErr + err + numErr);		//Alert the user
+		return;
+	}
+	
+	if($("#modifyLuxActivated").prop("checked") == false)	//Convert Lux Sensor flag checkbox status to integer
 		var luxActivated = 0;
 	else
-		var luxActivated = 1;	
-	if($("#modifyCo2Activated").prop("checked") == false)
+		var luxActivated = 1;
+	
+	if($("#modifyCo2Activated").prop("checked") == false)	//Convert CO2 Sensor flag checkbox status to integer
 		var co2Activated = 0;
 	else
 		var co2Activated = 1;
-	if($("#modifyParticleActivated").prop("checked") == false)
+	
+	if($("#modifyParticleActivated").prop("checked") == false)	//Convert Particle Sensor flag checkbox status to integer
 		var particleActivated = 0;
 	else
 		var particleActivated = 1;
-	if($("#modifyHumidityActivated").prop("checked") == false)
+	
+	if($("#modifyHumidityActivated").prop("checked") == false)	//Convert Humidity Sensor flag checkbox status to integer
 		var humidityActivated = 0;
 	else
 		var humidityActivated = 1;
-	if($("#modifyTemperatureActivated").prop("checked") == false)
+	
+	if($("#modifyTemperatureActivated").prop("checked") == false)	//Convert Temperature Sensor flag checkbox status to integer
 		var temperatureActivated = 0;
 	else
 		var temperatureActivated = 1;
 	
-	var info = {	//Object to store data
+	var info = {	//Object to store ALL data, except config name, and pass to AJAX request
 		option: parseInt($("#modifyOption").val()),
 		totalSteps: parseInt($("#modifyTotalSteps").val()),
 		delayTime: parseInt($("#modifyDelayTime").val()),
@@ -260,6 +326,25 @@ function saveConfig() {
 	});
 }
 
+function deleteConfig() {
+	$.ajax({
+		type: "POST",
+		url: "/configs/delete",
+		contentType: "application/json",
+		data: JSON.stringify({
+			configName: $("#configList option:selected").text()
+		}),
+		success: null,
+		dataType: "json"
+	}).done(function() {	//Once the server is finished deleting the configuration
+		$("#deletePopUp").hide();
+		alert("Configuration '"+$("#configList option:selected").text()+"' was successfully deleted.");	//Alert the user if the config was deleted
+		loadConfigList()	//Reload the config list
+	}).fail(function(){
+		alert("Unable to delete configuration '"+$("#configList option:selected").text()+"'.");	//Alert the user if the config was unable to be deleted
+	});
+}
+
 
 $(document).ready(() => {
 	loadConfigList();
@@ -268,4 +353,19 @@ $(document).ready(() => {
 	
 	$("#configList").on("change", loadConfig);
 	$("#saveConfig").on("click", saveConfig);
+	
+	$("#deleteConfig").on("click", function(){
+		$("#deleteConfigText").text($("#configList option:selected").text());
+		$("#deletePopUp").show();
+	});
+	$(".close, #cancelDelete").on("click", function(){
+		$("#deletePopUp").hide();
+	});
+	$("#confirmDelete").on("click", deleteConfig);
+	
+	window.onclick = function(event) {
+		if(event.target == $("#deletePopUp")[0]) {
+			$("#deletePopUp").hide();
+		}
+	}
 });

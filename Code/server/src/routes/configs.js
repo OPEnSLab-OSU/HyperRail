@@ -106,6 +106,37 @@ router.post('/edit', (req, res) => {
     }
 });
 
+// Delete a config file
+router.post('/delete', (req, res) => {
+    const fileName = `${req.body.configName}.json`;
+    const filePath = path.join(configDir, fileName);
+    
+	ensureDirs();
+
+	// Check if the config name exists or not
+    if(!(fs.existsSync(filePath))) {
+        const msg = logger.buildPayload(logger.level.ERROR, 'Config does not exist');
+        const status = 403;
+        res.status(status).send(msg);
+    } else {	//If the config does exist
+		let msg, status;
+		// Remove the config file
+		logger.ok(`Removed config: ${fileName}`);
+		fs.unlink(filePath, (err) => {
+			if(err) {
+				logger.error(err);
+				
+				msg = logger.buildPayload(logger.level.ERROR, 'Error removing config file\n');
+				status = 500;
+			} else {
+				msg = logger.buildPayload(logger.level.OK, 'Config removed\n');
+				status = 201;
+			}
+			res.status(status).send(msg);
+		});
+    }
+});
+
 // Read a config file
 router.post('/read', (req, res) => {
     const fileName = `${req.body.configName}.json`;
