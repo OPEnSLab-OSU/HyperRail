@@ -1,8 +1,14 @@
 function loadRunData() {
+	if($("#filterSetting").prop("checked") == true)
+		var filter = 1;
+	else
+		var filter = 0;
+	
 	$.getJSON("/runs/search", {			// Ask the server to search through the runs tables
 		bot: $("#botName").val(),		// Pass the queried bot name, run name, and sensor type
 		name: $("#runName").val(),
-		type: $("#sensorType").val()
+		type: $("#sensorType").val(),
+		filter: filter
 	}, (entries) => {
 		let data = "";					//String to hold table information
 		let limit = parseInt($("#dataLimit").val());
