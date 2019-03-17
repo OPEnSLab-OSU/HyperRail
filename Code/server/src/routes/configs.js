@@ -72,8 +72,8 @@ router.post('/edit', (req, res) => {
 	ensureDirs();
 
 	// Check if the config name exists
-    if(fs.existsSync(filePath)) {
-        const msg = logger.buildPayload(logger.level.ERROR, 'Config already exists');
+    if(!fs.existsSync(filePath)) {
+        const msg = logger.buildPayload(logger.level.ERROR, 'Config does not exist');
         const status = 403;
         res.status(status).send(msg);
     } else {

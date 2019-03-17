@@ -209,7 +209,6 @@ function saveConfig() {
 	var err = "";	//Strings to store error messages
 	var optErr = "";
 	var numErr = "";
-	var nameErr = "";
 	
 	if($("#modifyIntervalFlag").prop("checked") == false)	//Convert Interval flag checkbox status to integer
 		var intervalFlag = 0;
@@ -251,11 +250,7 @@ function saveConfig() {
 			numErr += "Time between Intervals, ";
 	}
 	
-
-	if($.trim($("#modifyConfigName").val()) == $("#modifyConfigName").prop("placeholder"))		//Check if the name is the same
-		nameErr = "Please change the Config Name.\n";
-	
-	if(err != "" || nameErr != "" || optErr != "" || numErr != "") {		//If there were any errors specified
+	if(err != "" || optErr != "" || numErr != "") {		//If there were any errors specified
 		if(err != ""){
 			err = err.slice(0, -2) + " must be specified.";	//Format the error
 			if(numErr != "")
@@ -263,7 +258,7 @@ function saveConfig() {
 		}
 		if(numErr != "")
 			numErr = numErr.slice(0, -2) + " must be a non-negative number.";	//Format number errors
-		alert(nameErr + optErr + err + numErr);		//Alert the user
+		alert(optErr + err + numErr);		//Alert the user
 		return;
 	}
 	
