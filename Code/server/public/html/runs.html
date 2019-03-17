@@ -17,6 +17,12 @@
 		.header {
 			margin: 10px 0px;
 		}
+		.smallHeader {
+			margin: 5px 0px;
+		}
+		fieldset {
+			padding: 0px !important;
+		}
 		.pure-table {
 			border-color: black;
 		}
@@ -43,6 +49,13 @@
 			border: 1px solid !important;
 		}
 		
+		#executeRun {
+			margin-left: 10px;
+			font-weight: normal;
+		}
+		#executeRunSide th {
+			background-color: lightskyblue;
+		}
 		.tooltiplabel {
 			border-bottom: 1px dotted black;
 		}
@@ -56,8 +69,11 @@
 			margin-left: 5px;
 			position: absolute;
 		}
-		.tooltiplabel:hover .tooltiptext {
+		.tooltip:hover .tooltiptext {
 			visibility: visible;
+		}
+		.pushTop {
+			margin-top: 10px;
 		}
 	</style>
 </head>
@@ -76,7 +92,7 @@
 		</ul>
 	</div>
 	<div class='content pure-g'>
-		<div class='pure-u-16-24'>
+		<div class='pure-u-1 pure-u-lg-14-24'>
 			<h2 class='header'>Search Collection Runs</h2>
 			<form class='pure-form'>
 				<fieldset>
@@ -111,97 +127,91 @@
 						<th>Value</th>
 					</tr>
 				</thead>
-				<tbody id='dataTable'>
+				<tbody id='tableData'>
 					<!-- Append Data here -->
 				</tbody>
 			</table>
 		</div>
-		<div class='pure-u-8-24'>
+		<div id='executeRunSide' class='pure-u-1 pure-u-lg-10-24'>
 			<h2 class='header'>Execute Runs</h2>
-			<h4 class='header'>Config List:
+			<h4 class='smallHeader'>Config List:
 				<select id='configList'>
 					<!-- Append Config List here -->
 				</select>
+				<button id='executeRun' class='pure-button pure-button-primary'>Execute Run</button>
 			</h4>
-			<div class='pure-g'>
-				<div class='pure-u-1'>
-					<b>General Settings:</b><br>
-					<table class='pure-table pure-table-bordered'>
-						<tr>
-							<th>Config Name:</th>
-							<td id='configName'/>
-						</tr>
-						<tr>
-							<th class='tooltiplabel'>Travel Option:
-								<span class='tooltiptext'>
-									1 = regular travel<br>
-									2 = travel to end of rail<br>
-									3 = travel to start of rail<br>
-									4 = travel backwards<br>
-									5 = travel forwards
-								</span>
-							</th>
-							<td id='option'/>
-						</tr>
-						<tr>
-							<th>Steps to Traverse Rail:</th>
-							<td id='totalSteps'/>
-						</tr>
-						<tr>
-							<th>Time between Steps (ms):</th>
-							<td id='delayTime'/>
-						</tr>
-					</table>
-				</div>
+			<form class='pure-form pure-form-stacked pure-g'>
+				<fieldset>
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>Run Settings:</b>
+						<label for='runNameInput'>Run Name:</label>
+						<input id='runNameInput' type='text'/>
+						
+						<label for='botNameInput'>Bot Name:</label>
+						<input id='botNameInput' type='text'/>
+					</div>
 					
-				<div class='pure-u-1'>
-					<b>Interval Settings:</b><br>
-					<table class='pure-table pure-table-bordered'>
-						<tr>
-							<th>Use Intervals?</th>
-							<td id='intervalFlag'/>
-						</tr>
-						<tr>	
-							<th>Number of Intervals:</th>
-							<td id='stops'/>
-						</tr>
-						<tr>
-							<th>Steps per Interval:</th>
-							<td id='intervalSteps'/>
-						</tr>
-						<tr>		
-							<th>Time between Intervals (s):</th>
-							<td id='timeInterval'/>
-						</tr>
-					</table>
-				</div>
-					
-				<div class='pure-u-1'>
-					<b>Sensors:</b><br>
-					<table class='pure-table pure-table-bordered'>
-						<tr>
-							<th>Lux Activated:</th>
-							<td id='luxActivated'>
-						</tr>
-						<tr>
-							<th>CO2 Activated:</th>
-							<td id='co2Activated'/>
-						</tr>
-						<tr>		
-							<th>Particle Activated:</th>
-							<td id='particleActivated'/>
-						</tr>
-						<tr>	
-							<th>Humidity Activated:</th>
-							<td id='humidityActivated'/>
-						</tr>
-						<tr>	
-							<th>Temperature Activated:</th>
-							<td id='temperatureActivated'/>
-						</tr>
-					</table>
-				</div>
-			</div>
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>General Settings:</b>
+						<label for='modifyOption' class='tooltip'>
+							<span class='tooltiplabel'>Travel Option:</span>
+							<span class='tooltiptext'>
+								1 = regular travel<br>
+								2 = travel to end of rail<br>
+								3 = travel to start of rail<br>
+								4 = travel backwards<br>
+								5 = travel forwards
+							</span>
+						</label>
+						<input id='modifyOption' type='number' min='1' max='5'/>
+							
+						<label for='modifyTotalSteps'>Steps to Traverse Rail:</label>
+						<input id='modifyTotalSteps' type='number' min='0'/>
+							
+						<label for='modifyDelayTime'>Time between Steps (ms):</label>
+						<input id='modifyDelayTime' type='number' min='0'/>
+					</div>
+						
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>Interval Settings:</b>
+						<label for='modifyIntervalFlag' class='pure-checkbox'>Use Intervals?
+							<input id='modifyIntervalFlag' type='checkbox'/>
+						</label>
+							
+						<label for='modifyStops'>Number of Intervals:</label>
+						<input id='modifyStops' type='number' min='0'/>
+							
+						<label for='modifyIntervalSteps'>Steps per Interval:</label>
+						<input id='modifyIntervalSteps' type='number' min='0'/>
+							
+						<label for='modifyTimeInterval'>Time between Interval (s):</label>
+						<input id='modifyTimeInterval' type='number' min='0'/>
+					</div>
+						
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>Sensors:</b>
+						<label for='modifyLuxActivated' class='pure-checkbox'>Lux Activated:
+							<input id='modifyLuxActivated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyCo2Activated' class='pure-checkbox'>CO2 Activated: 
+							<input id='modifyCo2Activated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyParticleActivated' class='pure-checkbox'>Particle Activated: 
+							<input id='modifyParticleActivated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyHumidityActivated' class='pure-checkbox'>Humidity Activated:
+							<input id='modifyHumidityActivated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyTemperatureActivated' class='pure-checkbox'>Temperature Activated:
+							<input id='modifyTemperatureActivated' type='checkbox'/>
+						</label>
+					</div>
+				</fieldset>
+			</form>
 		</div>
 	</div>
 </body>

@@ -38,8 +38,8 @@ function loadRunData() {
 						"<td colspan=5>No Data Found</td>" +
 					"</tr>";
 		}
-		$("#dataTable > *").replaceWith("");	//Remove the old table
-		$("#dataTable").append($(data));		//Append the new table
+		$("#tableData > *").replaceWith("");	//Remove the old table
+		$("#tableData").append($(data));		//Append the new table
 	});
 }
 
@@ -67,43 +67,155 @@ function loadConfigDetails(){
 			configName: $("#configList option:selected").text()
 		}),
 		success: function(config){	//Once the server is finished loading the config file, fill in the fields
-			$("#configName").text($("#configList option:selected").text());				//Fill in Config Name field
-			$("#option").text(config.option);				//Fill in Option value
-			$("#delayTime").text(config.delayTime);			//Fill in Time between Steps
-			$("#totalSteps").text(config.totalSteps);		//Fill in Steps to Traverse Rail
+			$("#modifyConfigName").val($("#configList option:selected").text());					//Fill in Config Name field
+			$("#modifyOption").val(config.option);					//Fill in Option value
+			$("#modifyDelayTime").val(config.delayTime);			//Fill in Time between Steps
+			$("#modifyTotalSteps").val(config.totalSteps);			//Fill in Steps to Traverse Rail
 			
-			if(config.intervalFlag == 0)							//Convert Interval Flag integer to text status
-				$("#intervalFlag").text("No");
+			if(config.intervalFlag == 0)							//Convert Interval Flag integer to checkbox status
+				$("#modifyIntervalFlag").prop("checked", false);
 			else
-				$("#intervalFlag").text("Yes");
-			$("#stops").text(config.stops);					//Fill in Number of Intervals
-			$("#intervalSteps").text(config.intervalSteps);	//Fill in Steps per Interval
-			$("#timeInterval").text(config.timeInterval);		//Fill in Time between Intervals
+				$("#modifyIntervalFlag").prop("checked", true);
+			$("#modifyStops").val(config.stops);					//Fill in Number of Intervals
+			$("#modifyIntervalSteps").val(config.intervalSteps);	//Fill in Steps per Interval
+			$("#modifyTimeInterval").val(config.timeInterval);		//Fill in Time between Intervals
 			
-			if(config.luxActivated == 0)							//Convert Lux Sensor Flag integer to text status
-				$("#luxActivated").text("No");
+			if(config.luxActivated == 0)							//Convert Lux Sensor Flag integer to checkbox status
+				$("#modifyLuxActivated").prop("checked", false);
 			else
-				$("#luxActivated").text("Yes");
+				$("#modifyLuxActivated").prop("checked", true);
 		
-			if(config.co2Activated == 0)							//Convert CO2 Sensor Flag integer to text status
-				$("#co2Activated").text("No");
+			if(config.co2Activated == 0)							//Convert CO2 Sensor Flag integer to checkbox status
+				$("#modifyCo2Activated").prop("checked", false);
 			else
-				$("#co2Activated").text("Yes");
+				$("#modifyCo2Activated").prop("checked", true);
 		
-			if(config.particleActivated == 0)						//Convert Particle Sensor Flag integer to text status
-				$("#particleActivated").text("No");
+			if(config.particleActivated == 0)						//Convert Particle Sensor Flag integer to checkbox status
+				$("#modifyParticleActivated").prop("checked", false);
 			else
-				$("#particleActivated").text("Yes");
+				$("#modifyParticleActivated").prop("checked", true);
 		
-			if(config.humidityActivated == 0)						//Convert Humidity Sensor Flag integer to text status
-				$("#humidityActivated").text("No");
+			if(config.humidityActivated == 0)						//Convert Humidity Sensor Flag integer to checkbox status
+				$("#modifyHumidityActivated").prop("checked", false);
 			else
-				$("#humidityActivated").text("Yes");
+				$("#modifyHumidityActivated").prop("checked", true);
 		
-			if(config.temperatureActivated == 0)					//Convert Temperature Sensor Flag integer to text status
-				$("#temperatureActivated").text("No");
+			if(config.temperatureActivated == 0)					//Convert Temperature Sensor Flag integer to checkbox status
+				$("#modifyTemperatureActivated").prop("checked", false);
 			else
-				$("#temperatureActivated").text("Yes");
+				$("#modifyTemperatureActivated").prop("checked", true);
+		},
+		dataType: "json"
+	});
+}
+
+function executeRun() {
+	var err = "";	//Strings to store error messages
+	var optErr = "";
+	var numErr = "";
+	
+	
+	if($.trim($("#runNameInput").val()) == "")
+		err += "Run Name, ";
+	if($.trim($("#botNameInput").val()) == "")
+		err += "Bot Name, ";
+	
+	if($("#modifyIntervalFlag").prop("checked") == false)	//Convert Interval flag checkbox status to integer
+		var intervalFlag = 0;
+	else
+		var intervalFlag = 1;
+		
+	if($("#modifyOption").val() == "")					//Check if the option number is empty
+		err += "Option, ";
+	else if ($("#modifyOption").val() < 1 || $("#modifyOption").val() > 5)	//If not empty, check if it is between 1 and 5
+		optErr += "Option must be an integer between 1 and 5.\n";
+	
+	if($("#modifyTotalSteps").val() == "")				//Check if the Steps to Traverse Rail is empty
+		err += "Steps to Traverse Rail, ";
+	else if ($("#modifyTotalSteps").val() < 0)			//If not empty, check if it is non-negative
+		numErr += "Steps to Traverse Rail, ";
+	
+	if($("#modifyDelayTime").val() == "")				//Check if the Time between Steps is empty
+		err += "Time between Steps, ";
+	else if ($("#modifyDelayTime").val() < 0)			//If not empty, check if it is non-negative
+		numErr += "Time between Steps, ";
+	
+	if(intervalFlag == 1){	//Interval settings only matter if intervals are used
+		if($("#modifyStops").val() == "")				//Check if the Number of Intervals is empty
+			err += "Number of Intervals, ";
+		else if ($("#modifyStops").val() < 0)			//If not empty, check if it is non-negative
+			numErr += "Number of Intervals, ";
+		
+		if($("#modifyIntervalSteps").val() == "")		//Check if the Steps per Intervals is empty
+			err += "Steps per Interval, ";
+		else if ($("#modifyIntervalSteps").val() < 0)	//If not empty, check if it is non-negative
+			numErr += "Steps per Interval, ";
+		
+		if($("#modifyTimeInterval").val() == "")		//Check if the Time between Intervals is empty
+			err += "Time between Intervals, ";
+		else if ($("#modifyTimeInterval").val() < 0)	//If not empty, check if it is non-negative
+			numErr += "Time between Intervals, ";
+	}
+	
+	if(err != "" || optErr != "" || numErr != "") {		//If there were any errors specified
+		if(err != ""){
+			err = err.slice(0, -2) + " must be specified.";	//Format the error
+			if(numErr != "")
+				err += "\n";
+		}
+		if(numErr != "")
+			numErr = numErr.slice(0, -2) + " must be a non-negative number.";	//Format number errors
+		alert(optErr + err + numErr);		//Alert the user
+		return;
+	}
+	
+	if($("#modifyLuxActivated").prop("checked") == false)	//Convert Lux Sensor flag checkbox status to integer
+		var luxActivated = 0;
+	else
+		var luxActivated = 1;
+	
+	if($("#modifyCo2Activated").prop("checked") == false)	//Convert CO2 Sensor flag checkbox status to integer
+		var co2Activated = 0;
+	else
+		var co2Activated = 1;
+	
+	if($("#modifyParticleActivated").prop("checked") == false)	//Convert Particle Sensor flag checkbox status to integer
+		var particleActivated = 0;
+	else
+		var particleActivated = 1;
+	
+	if($("#modifyHumidityActivated").prop("checked") == false)	//Convert Humidity Sensor flag checkbox status to integer
+		var humidityActivated = 0;
+	else
+		var humidityActivated = 1;
+	
+	if($("#modifyTemperatureActivated").prop("checked") == false)	//Convert Temperature Sensor flag checkbox status to integer
+		var temperatureActivated = 0;
+	else
+		var temperatureActivated = 1;
+	
+	$.ajax({
+		type: "POST",
+		url: "/bots/execute",
+		contentType: "application/json",
+		data: JSON.stringify({	
+			runName: $("#runNameInput").val(),
+			botName: $("#botNameInput").val(),
+			option: parseInt($("#modifyOption").val()),
+			totalSteps: parseInt($("#modifyTotalSteps").val()),
+			delayTime: parseInt($("#modifyDelayTime").val()),
+			intervalFlag: intervalFlag,
+			intervalSteps: parseInt($("#modifyIntervalSteps").val()),
+			stops: parseInt($("#modifyStops").val()),
+			luxActivated: luxActivated,
+			co2Activated: co2Activated,
+			particleActivated: particleActivated,
+			humidityActivated: humidityActivated,
+			temperatureActivated: temperatureActivated,
+			timeInterval: parseInt($("#modifyTimeInterval").val())
+		}),
+		success: function(){	//Once the server is finished loading the config file, fill in the fields
+			alert("Run execution successful.");
 		},
 		dataType: "json"
 	});
@@ -118,4 +230,7 @@ $(document).ready(() => {
 		if(e.which == 13)
 			loadRunData();
 	});
+	
+	$("#configList").on("change", loadConfigDetails);
+	$("#executeRun").on("click", executeRun);
 });
