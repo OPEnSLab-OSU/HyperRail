@@ -107,7 +107,7 @@ char inData[80];//This will be used for the incoming data from processing
 int current_step = 0;
 
 struct Config {
-  // Metadata used to pass info around
+  // Metadata used to pass info around server/client
   int ipAddress[4];
   String runName;
   String botName;
@@ -127,7 +127,6 @@ struct Config {
   int timeInterval;
 };
 
-Config config;
 
 // WiFi hotspot globals
 const char ssid[] = "HyperRail AP";
@@ -179,19 +178,14 @@ void setup() {
   int count = 0;
 }
 
-//Main loop
+// Loop Globals, this data persists between loops
+Config config;
 void loop() {
-  //while(Serial.available() >= 2){
-  //Serial.println("This is what is stored in \"user_input\" before the read : " );// for testing
-  //Serial.println(user_input);//for testing
-  //user_input = Serial.read(); //Read user input and trigger appropriate function
-  //Serial.println("This is what is stored in \"user_input\" after the read : " );//for testing
-  //Serial.println(user_input);//for testing
 
-  decoder();//This is where the data gets parsed to get the values from the GUI
+  decoder(); //This is where the data gets parsed to get the values from the GUI 
   return;
-
-  digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control
+  
+  digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control 
   if (option == 1) {
     if (delay_time >= 5100) { //if this evaluates to true, then it will go slower than 1mm/s
       travelHyperRail_slow(total_steps, delay_time);
@@ -227,27 +221,16 @@ void loop() {
   //}
 }
 
-/******************* Function: decoder()*********************
-   Description: This function will parse the message from processing
-                into the corresponding varibles.These will be: option,
-                steps, and delay time.
-   Parameters: NONE
-   Returns: VOID
-*/
-void decoder()
-{
+/*
+ * Function: decoder
+ * Params: None
+ * Return: None
+ * 
+ * This function listens to the network for any new configuration data. 
+ * If data is found, this new configuration is copied over to the global config for use in this bot
+ */
+void decoder() {
 
-  //  if (Serial.available() > 0)
-  //  {
-  //    String data_str = Serial.readString();//reads in the string
-  //    Serial.print("From uC side: ");
-  //    Serial.println(data_str);//For testing
-  //    Serial.print("String length: ");
-  //    Serial.println(data_str.length());
-  //    data_str.toCharArray(inData, 80);//converts the string into char array
-  //
-  //  }
- 
   bool newData = false;
   String line = "";
   WiFiClient client = server.available();   // listen for incoming clients
@@ -275,19 +258,19 @@ void decoder()
       line += (char) client.read();
     }
 
-    String data = "HTTP/1.1 200 OK\n"
-                  "Content-type:application/json\n"
-                  "\r\n"
-                  "{\"Status\": \"Recieved\"}\n"
-                  "\n";
-    client.println(data);
-    Serial.print("JSON: ");
-    Serial.println(line);
+    String ack = "HTTP/1.1 200 OK\n"
+                 "Content-type:application/json\n"
+                 "\r\n"
+                 "{\"Status\": \"Recieved\"}\n"
+                 "\n";
+    client.println(ack);
+//    Serial.print("JSON: ");
+//    Serial.println(line);
 
     if (client.connected()) {
       client.stop();
     }
-    config = parseRequest(line);
+    parseRequest(line);
 
     // Temporary method to use the pre-existing globals
     option = config.option;
@@ -302,37 +285,29 @@ void decoder()
     humidity_activated = config.humidityActivated;
     temperature_activated = config.temperatureActivated;
     time_interval = config.timeInterval;
-  }
 
-  //  Serial.print("Option: ");
-  //  Serial.println(config.option);
-  //  Serial.print("Steps: ");
-  //  Serial.println(config.totalSteps);
-  //  Serial.print("Delay: ");
-  //  Serial.println(config.delayTime);
-  //  Serial.print("Interval Flag: ");
-  //  Serial.println(config.intervalFlag);
-  //  Serial.print("Interval Steps: ");
-  //  Serial.println(config.intervalSteps);
-  //  Serial.print("Stops: ");
-  //  Serial.println(config.stops);
-  //  Serial.print("Lux: ");
-  //  Serial.println(config.luxActivated);
-  //  Serial.print("CO2: ");
-  //  Serial.println(config.co2Activated);
-  //  Serial.print("Particle: ");
-  //  Serial.println(config.particleActivated);
-  //  Serial.print("Humidity: ");
-  //  Serial.println(config.humidityActivated);
-  //  Serial.print("Temperature: ");
-  //  Serial.println(config.temperatureActivated);
-  //  Serial.print("Time Interval: ");
-  //  Serial.println(config.timeInterval);
+    // Testing sending data back to server
+    OSCBundle sensor_bundle;
+    sensor_bundle.add("a")
+      .add("C").add(1)
+      .add("L").add(2)
+      .add("T").add(3)
+      .add("H").add(4)
+      .add("Lo").add((float) 5.2)
+      .add("Vbat").add((float) 6.0);
+  
+    OSCBundle *bundle = &sensor_bundle;
+
+    String str_json = buildJson(bundle);
+    Serial.println(str_json);
+  }
 }
 
-Config parseRequest(String request) {
-  const size_t capacity = JSON_ARRAY_SIZE(4) + JSON_OBJECT_SIZE(13) + 230;
+void parseRequest(String request) {
+  // Watch out for memory issues, increase cap if necessary.
+  const size_t capacity = JSON_OBJECT_SIZE(14) + JSON_ARRAY_SIZE(4) + 400;
   StaticJsonBuffer<capacity> buffer;
+  Serial.println(request);
 
   JsonObject& obj = buffer.parseObject(request.c_str());
   if (obj.success()) {
@@ -341,8 +316,8 @@ Config parseRequest(String request) {
     config.ipAddress[2] = obj["ipAddress"][2];
     config.ipAddress[3] = obj["ipAddress"][3];
 
-    config.runName = obj["runName"];
-    config.botName = obj["botName"];
+    config.runName = obj.get<String>("runName");
+    config.botName = obj.get<String>("botName");
 
     config.option = obj["option"];
     config.totalSteps = obj["totalSteps"];
@@ -359,7 +334,32 @@ Config parseRequest(String request) {
   } else {
     Serial.println("ERROR: Cannot parse request");
   }
-  return config;
+}
+
+String buildJson(OSCBundle *bundle) {
+  const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6);
+  StaticJsonBuffer<capacity> jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
+
+  Serial.print("Run Name: ");
+  Serial.println(config.runName);
+  json.set("runName", config.runName);
+  json.set("botName", config.botName);
+
+  JsonObject& data = json.createNestedObject("data");
+  char buf[50];
+  OSCMessage msg = bundle->getOSCMessage(0);
+  for (int i = 0; i < msg.size(); i += 2) {
+    msg.getString(i, buf, 50);
+    switch(msg.getType(i + 1)) {
+      case 'f': data.set(buf, msg.getFloat(i + 1)); break;
+      case 'i': data.set(buf, msg.getInt(i + 1)); break;
+    }
+  }
+
+  String str;
+  json.printTo(str);
+  return str;
 }
 
 
@@ -407,8 +407,23 @@ void transmit_nRF_sensors() {
 
   //LOOM_DEBUG_Println("To Sensors");
   //LOOM_DEBUG_Println2("Location: ", location);
-  //print_bundle(&bndl);
+//  print_bundle(&bndl);
 
+  OSCBundle sensor_bundle;
+  sensor_bundle.add("a")
+    .add("C").add(1)
+    .add("L").add(2)
+    .add("T").add(3)
+    .add("H").add(4)
+    .add("Lo").add((float) 5.2)
+    .add("Vbat").add((float) 6.0);
+
+  OSCBundle *bundle = &sensor_bundle;
+  
+  String str_json = buildJson(bundle);
+  
+  return;
+  
   bool is_sent = nrf_send_bundle(&bndl, sensor_node);
   while (!is_sent) {
     network.update();
@@ -421,8 +436,7 @@ void transmit_nRF_sensors() {
     //
     //delay(2000); //for testing fail states
     unsigned long start_listening = millis();
-
-
+    
     network.update();
     while (!network.available() && millis() - start_listening < 10000) {
       network.update();
@@ -432,9 +446,12 @@ void transmit_nRF_sensors() {
     }
   }
 
-  OSCBundle sensor_bundle;
-  nrf_receive_bundle(&sensor_bundle);
-  print_bundle(&sensor_bundle);
+
+//  OSCBundle sensor_bundle;
+//  nrf_receive_bundle(&sensor_bundle);
+//  print_bundle(&sensor_bundle);  
+  // Mock the bundle
+
   Serial.println("Received sensor data!");
 
   // TODO: Swap out "nrf sending to ethernet hub" to "wifi back to client". Code example below
@@ -445,9 +462,10 @@ void transmit_nRF_sensors() {
 //  if(hyperrail_host.connect(hyperrail_ip, 3000)) {
 //    Serial.println("Sending get request");
 //  
-//    String sensor_data = "POST /runs/create HTTP/1.1\n"
+//    String sensor_data = "POST /test HTTP/1.1\n"
 //                         "Content-Type: application/json\n"
-//                         "{\"Key\": \"Value\"}"
+//                         "\r\n"
+//                         + str_json + 
 //                         "\n"
 //    hyperrail_host.println(sensor_data);
 //    // Don't care about the response
@@ -510,7 +528,7 @@ void transmit_nRF_sensors() {
 */
 void travelHyperRail(long steps_total, int delay_time)
 {
-  //Serial.println("Traveling the HyperRail!");// for testing
+  Serial.println("Traveling the HyperRail!");// for testing
 
   //Serial.print("My delay time is: " );//for testing
   //Serial.println(delay_time);//For testing
@@ -519,7 +537,7 @@ void travelHyperRail(long steps_total, int delay_time)
 
   digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
   unsigned long startTime = micros();// start time // for testing
-  for (x = 1; x <= steps_total; x++) //Loop the forward stepping enough times for motion to be visible
+  for (x = 0; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
   {
     digitalWrite(stp, HIGH); //Trigger one step forward
     delayMicroseconds(delay_time);
@@ -536,6 +554,7 @@ void travelHyperRail(long steps_total, int delay_time)
 
   //// send data before returning ////
   transmit_nRF_sensors();
+  return;
   /*
     unsigned long endTime = micros();//end time//for testing
 
@@ -614,8 +633,6 @@ void travelHyperRail_slow(long steps_total, int delay_time)
   Serial.println(totalTime);//for testing
   Serial.print("Seconds: " );//for testing
   Serial.println(float(totalTime / (1 * pow(10, 6)))); //for testing
-
-
 
   //Waits 100 milliseconds before going back the other way
   delay(500);
@@ -841,4 +858,31 @@ void printWiFiStatus() {
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
+}
+
+void printConfigInfo() {
+    Serial.print("Option: ");
+    Serial.println(config.option);
+    Serial.print("Steps: ");
+    Serial.println(config.totalSteps);
+    Serial.print("Delay: ");
+    Serial.println(config.delayTime);
+    Serial.print("Interval Flag: ");
+    Serial.println(config.intervalFlag);
+    Serial.print("Interval Steps: ");
+    Serial.println(config.intervalSteps);
+    Serial.print("Stops: ");
+    Serial.println(config.stops);
+    Serial.print("Lux: ");
+    Serial.println(config.luxActivated);
+    Serial.print("CO2: ");
+    Serial.println(config.co2Activated);
+    Serial.print("Particle: ");
+    Serial.println(config.particleActivated);
+    Serial.print("Humidity: ");
+    Serial.println(config.humidityActivated);
+    Serial.print("Temperature: ");
+    Serial.println(config.temperatureActivated);
+    Serial.print("Time Interval: ");
+    Serial.println(config.timeInterval);
 }

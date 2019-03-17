@@ -17,14 +17,116 @@
 		.header {
 			margin: 10px 0px;
 		}
+		
+		.tooltiplabel {
+			border-bottom: 1px dotted black;
+		}
+		.tooltiptext {
+			visibility: hidden;
+			border: 1px solid dodgerblue;
+			border-radius: 0.25rem;
+			background-color: gainsboro;
+			color: black;
+			padding: 2px 4px;
+			margin-left: 5px;
+			position: absolute;
+		}
+		.tooltip:hover .tooltiptext {
+			visibility: visible;
+		}
+		
 		#configList {
 			margin: 0px 0px 8px 4px;
+			min-width: 150px !important;
 		}
+		.font-normal {
+			font-weight: normal;
+		}
+		#deleteConfig {
+			margin-left: 10px;
+		}
+		
 		.pure-controls {
 			margin-top: 10px !important;
 		}
-		.normalize {
-			padding: 0px !important;
+		
+		#confirmDelete {
+			width: 45%;
+		}
+		#cancelDelete {
+			float:right;
+			width: 45%;
+		}
+		
+		
+		/* The Modal (background) */
+		.modal {
+			display: none; 		/* Hidden by default */
+			position: fixed; 	/* Stay in place */
+			z-index: 100; 		/* Sit on top */
+			padding-top: 100px; /* Location of the box */
+			left: 0;
+			top: 0;
+			width: 100%; 		/* Full width */
+			height: 100%; 		/* Full height */
+			overflow: auto; 	/* Enable scroll if needed */
+			background-color: rgb(0,0,0); 		/* Fallback color */
+			background-color: rgba(0,0,0,0.4); 	/* Black w/ opacity */
+		}
+
+		/* Modal Content */
+		.modal-content {
+			position: relative;
+			background-color: #fefefe;
+			margin: auto;
+			padding: 0;
+			border: 1px solid #888;
+			width: 400px;
+			box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+			-webkit-animation-name: animatetop;
+			-webkit-animation-duration: 0.4s;
+			animation-name: animatetop;
+			animation-duration: 0.4s
+		}
+
+		/* Add Animation */
+		@-webkit-keyframes animatetop {
+			from {top:-300px; opacity:0} 
+			to {top:0; opacity:1}
+		}
+
+		@keyframes animatetop {
+			from {top:-300px; opacity:0}
+			to {top:0; opacity:1}
+		}
+
+		/* The Close Button */
+		.close {
+			color: white;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+		.close:hover, .close:focus {
+			color: black;
+			text-decoration: none;
+			cursor: pointer;
+		}
+
+		.modal-header {
+			padding: 2px 16px;
+			background-color: dodgerblue;
+			color: white;
+		}
+
+		.modal-body {
+			padding: 16px 16px;
+		}
+
+		.modal-footer {
+			padding: 2px 16px;
+			background-color: dodgerblue;
+			color: white;
 		}
 	</style>
 </head>
@@ -42,143 +144,174 @@
 			<li class='pure-menu-item'><a href='#' class='pure-menu-link active'>Configs</a></li>
 		</ul>
 	</div>
-	<div class='content'>
-		<div class='pure-g'>
-			<div class='pure-u-lg-1-2 pure-u-1'>
-				<h2 class='header'>Create Configurations</h2>
-				<form id='createForm' value=1 class='pure-form pure-form-stacked'>
-					<fieldset>
-						<div class='pure-g'>
-							<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
-								<b>General Settings:</b>
-								<label for='configName'>Config Name:</label>
-								<input id='configName' type='text'/>
-								
-								<label for='option'>Option:</label>
-								<input id='option' type='number' min='1' max='5'/>
-								
-								<label for='delayTime'>Delay Time:</label>
-								<input id='delayTime' type='number' min='0'/>
-								
-								<label for='totalSteps'>Steps to Traverse Rail:</label>
-								<input id='totalSteps' type='number' min='0'/>
-							</div>
+	<div class='content pure-g'>
+		<div class='pure-u-lg-1-2 pure-u-1'>
+			<h2 class='header'>Create Configurations</h2>
+			<form id='createForm' value=1 class='pure-form pure-form-stacked'>
+				<fieldset>
+					<div class='pure-g'>
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>General Settings:</b>
+							<label for='configName'>Config Name:</label>
+							<input id='configName' type='text'/>
 							
-							<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
-								<b>Interval Settings:</b>
-								<label for='intervalFlag' class='pure-checkbox'>Use Intervals?
-									<input id='intervalFlag' type='checkbox'/>
-								</label>
-								
-								<label for='stops'>Number of Intervals:</label>
-								<input id='stops' type='number' min='0'/>
-								
-								<label for='intervalSteps'>Steps per Interval:</label>
-								<input id='intervalSteps' type='number' min='0' value='0'/>
-								
-								<label for='timeInterval'>Time between Intervals: (s)</label>
-								<input id='timeInterval' type='number' min='0' value='0'/>
-							</div>
+							<label for='option' class='tooltip'>
+								<span class='tooltiplabel'>Travel Option:</span>
+								<span class='tooltiptext'>
+									1 = regular travel<br>
+									2 = travel to end of rail<br>
+									3 = travel to start of rail<br>
+									4 = travel backwards<br>
+									5 = travel forwards
+								</span>
+							</label>
+							<input id='option' type='number' min='1' max='5'/>
 							
-							<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
-								<b>Sensors:</b>
-								<label for='luxActivated' class='pure-checkbox'>Lux Activated:
-									<input id='luxActivated' type='checkbox'/>
-								</label>
-								
-								<label for='co2Activated' class='pure-checkbox'>CO2 Activated: 
-									<input id='co2Activated' type='checkbox'/>
-								</label>
-								
-								<label for='particleActivated' class='pure-checkbox'>Particle Activated: 
-									<input id='particleActivated' type='checkbox'/>
-								</label>
-								
-								<label for='humidityActivated' class='pure-checkbox'>Humidity Activated:
-									<input id='humidityActivated' type='checkbox'/>
-								</label>
-								
-								<label for='temperatureActivated' class='pure-checkbox'>Temperature Activated:
-									<input id='temperatureActivated' type='checkbox'/>
-								</label>
-							</div>
+							<label for='totalSteps'>Steps to Traverse Rail:</label>
+							<input id='totalSteps' type='number' min='0'/>
+							
+							<label for='delayTime'>Time between Steps (ms):</label>
+							<input id='delayTime' type='number' min='0'/>
 						</div>
-						<div class='pure-controls'>
-							<button id='createConfig' type='button' class='pure-button pure-button-primary'>Create</button>
-							<button id='clearConfig' type='button' class='pure-button pure-button-primary'>Clear Form</button>
+						
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Interval Settings:</b>
+							<label for='intervalFlag' class='pure-checkbox'>Use Intervals?
+								<input id='intervalFlag' type='checkbox'/>
+							</label>
+							
+							<label for='stops'>Number of Intervals:</label>
+							<input id='stops' type='number' min='0'/>
+							
+							<label for='intervalSteps'>Steps per Interval:</label>
+							<input id='intervalSteps' type='number' min='0' value='0'/>
+							
+							<label for='timeInterval'>Time between Intervals (s):</label>
+							<input id='timeInterval' type='number' min='0' value='0'/>
 						</div>
-					</fieldset>
-				</form>
+						
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Sensors:</b>
+							<label for='luxActivated' class='pure-checkbox'>Lux Activated:
+								<input id='luxActivated' type='checkbox'/>
+							</label>
+							
+							<label for='co2Activated' class='pure-checkbox'>CO2 Activated: 
+								<input id='co2Activated' type='checkbox'/>
+							</label>
+							
+							<label for='particleActivated' class='pure-checkbox'>Particle Activated: 
+								<input id='particleActivated' type='checkbox'/>
+							</label>
+								
+							<label for='humidityActivated' class='pure-checkbox'>Humidity Activated:
+								<input id='humidityActivated' type='checkbox'/>
+							</label>
+								
+							<label for='temperatureActivated' class='pure-checkbox'>Temperature Activated:
+								<input id='temperatureActivated' type='checkbox'/>
+							</label>
+						</div>
+					</div>
+					<div class='pure-controls'>
+						<button id='createConfig' type='button' class='pure-button pure-button-primary'>Create</button>
+						<button id='clearConfig' type='button' class='pure-button pure-button-primary'>Clear Form</button>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+		<div class='pure-u-lg-1-2 pure-u-1'>
+			<h2 class='header'>Modify Configurations</h2>
+			<h4 class='header'>Config List:
+				<select id='configList'>
+					<!-- Append Config List here -->
+				</select>
+				<button id='deleteConfig' class='pure-button pure-button-primary font-normal'>Delete Config</button>
+			</h4>
+			<form id='modifyForm' class='pure-form pure-form-stacked'>
+				<fieldset>
+					<div class='pure-g'>
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>General Settings:</b>
+							<label for='modifyConfigName' placeholder=''>Config Name:</label>
+							<input id='modifyConfigName' type='text'/>
+							
+							<label for='modifyOption' class='tooltip'>
+								<span class='tooltiplabel'>Travel Option:</span>
+								<span class='tooltiptext'>
+									1 = regular travel<br>
+									2 = travel to end of rail<br>
+									3 = travel to start of rail<br>
+									4 = travel backwards<br>
+									5 = travel forwards
+								</span>
+							</label>
+							<input id='modifyOption' type='number' min='1' max='5'/>
+								
+							<label for='modifyTotalSteps'>Steps to Traverse Rail:</label>
+							<input id='modifyTotalSteps' type='number' min='0'/>
+								
+							<label for='modifyDelayTime'>Time between Steps (ms):</label>
+							<input id='modifyDelayTime' type='number' min='0'/>
+						</div>
+							
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Interval Settings:</b>
+							<label for='modifyIntervalFlag' class='pure-checkbox'>Use Intervals?
+								<input id='modifyIntervalFlag' type='checkbox'/>
+							</label>
+								
+							<label for='modifyStops'>Number of Intervals:</label>
+							<input id='modifyStops' type='number' min='0'/>
+								
+							<label for='modifyIntervalSteps'>Steps per Interval:</label>
+							<input id='modifyIntervalSteps' type='number' min='0'/>
+								
+							<label for='modifyTimeInterval'>Time between Interval (s):</label>
+							<input id='modifyTimeInterval' type='number' min='0'/>
+						</div>
+							
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Sensors:</b>
+							<label for='modifyLuxActivated' class='pure-checkbox'>Lux Activated:
+								<input id='modifyLuxActivated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyCo2Activated' class='pure-checkbox'>CO2 Activated: 
+								<input id='modifyCo2Activated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyParticleActivated' class='pure-checkbox'>Particle Activated: 
+								<input id='modifyParticleActivated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyHumidityActivated' class='pure-checkbox'>Humidity Activated:
+								<input id='modifyHumidityActivated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyTemperatureActivated' class='pure-checkbox'>Temperature Activated:
+								<input id='modifyTemperatureActivated' type='checkbox'/>
+							</label>
+						</div>
+					</div>
+					<div class='pure-controls'>
+						<button id='saveConfig' type='button' class='pure-button pure-button-primary'>Save Changes</button>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	<div id='deletePopUp' class='modal'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<span class="close">&times;</span>
+				<h2>Delete Configuration 
+					<span id='deleteConfigText'></span>?
+				</h2>
 			</div>
-			<div class='pure-u-lg-1-2 pure-u-1'>
-				<h3 class='header'>Modify Configurations</h3>
-				<h4 class='header'>Config List:
-					<select id='configList'>
-						<!-- Append Config List here -->
-					</select>
-				</h4>
-				<form id='modifyForm' class='pure-form pure-form-stacked'>
-					<fieldset>
-						<div class='pure-g'>
-							<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
-								<b>General Settings:</b>
-								<label for='modifyConfigName' placeholder=''>Config Name:</label>
-								<input id='modifyConfigName' type='text'/>
-								
-								<label for='modifyOption'>Option:</label>
-								<input id='modifyOption' type='number' min='1' max='5'/>
-								
-								<label for='modifyDelayTime'>Delay Time:</label>
-								<input id='modifyDelayTime' type='number' min='0'/>
-								
-								<label for='modifyTotalSteps'>Steps to Traverse Rail:</label>
-								<input id='modifyTotalSteps' type='number' min='0'/>
-							</div>
-							
-							<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
-								<b>Interval Settings:</b>
-								<label for='modifyIntervalFlag' class='pure-checkbox'>Use Intervals?
-									<input id='modifyIntervalFlag' type='checkbox'/>
-								</label>
-								
-								<label for='modifyStops'>Number of Intervals:</label>
-								<input id='modifyStops' type='number' min='0'/>
-								
-								<label for='modifyIntervalSteps'>Steps per Interval:</label>
-								<input id='modifyIntervalSteps' type='number' min='0'/>
-								
-								<label for='modifyTimeInterval'>Time between Interval:</label>
-								<input id='modifyTimeInterval' type='number' min='0'/>
-							</div>
-							
-							<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
-								<b>Sensors:</b>
-								<label for='modifyLuxActivated' class='pure-checkbox'>Lux Activated:
-									<input id='modifyLuxActivated' type='checkbox'/>
-								</label>
-								
-								<label for='modifyCo2Activated' class='pure-checkbox'>CO2 Activated: 
-									<input id='modifyCo2Activated' type='checkbox'/>
-								</label>
-								
-								<label for='modifyParticleActivated' class='pure-checkbox'>Particle Activated: 
-									<input id='modifyParticleActivated' type='checkbox'/>
-								</label>
-								
-								<label for='modifyHumidityActivated' class='pure-checkbox'>Humidity Activated:
-									<input id='modifyHumidityActivated' type='checkbox'/>
-								</label>
-								
-								<label for='modifyTemperatureActivated' class='pure-checkbox'>Temperature Activated:
-									<input id='modifyTemperatureActivated' type='checkbox'/>
-								</label>
-							</div>
-						</div>
-						<div class='pure-controls'>
-							<button id='saveConfig' type='button' class='pure-button pure-button-primary'>Save Changes</button>
-						</div>
-					</fieldset>
-				</form>
+			<div class='modal-body'>
+				<button id='confirmDelete' type='button' class='pure-button pure-button-primary'>Yes</button>
+				<button id='cancelDelete' type='button' class='pure-button pure-button-primary'>No</button>
 			</div>
 		</div>
 	</div>
