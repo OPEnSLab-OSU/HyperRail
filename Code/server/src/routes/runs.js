@@ -19,13 +19,13 @@ router.post('/create', (req, res) => {
     const client = db.get();
     const formatData = [{
         fields: {
-            value: req.body.data,
+            value: JSON.stringify(req.body.data)
         },
         tags: {
             botName: req.body.botName,
             runName: req.body.runName
         },
-        timestamp: new Date(elem.time * 1000)
+        timestamp: new Date()
     }];
 
     // Write to database

@@ -114,7 +114,7 @@ router.post('/delete', (req, res) => {
 	ensureDirs();
 
 	// Check if the config name exists or not
-    if(!(fs.existsSync(filePath))) {
+    if(!fs.existsSync(filePath)) {
         const msg = logger.buildPayload(logger.level.ERROR, 'Config does not exist');
         const status = 403;
         res.status(status).send(msg);
