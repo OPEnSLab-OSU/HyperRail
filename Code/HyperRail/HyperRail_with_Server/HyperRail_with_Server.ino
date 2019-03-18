@@ -82,7 +82,7 @@ String inString = " "; // string to hold input
 float path_length = 0; // length of rail in meters
 float spool_radius = 10;// Radius of the spool that is holding the line
 long total_steps = 0; //Total steps calculated to move all the way down the length of the rail.
-long x = 0;//counting variable8
+long x = 0;//counting variable
 bool entered_numberLength = false;//Flag variable to check whether or not the input was a number and not a word
 bool entered_numberRadius = false;//Flag variable to check whether or not hte input was a nubmer and not a word
 bool entered_RPM = false;//Flag variable to check whether or not hte input was a nubmer and not a word
@@ -127,13 +127,6 @@ struct Config {
   int timeInterval;
 };
 
-
-// WiFi hotspot globals
-const char ssid[] = "HyperRail AP";
-int wifiStatus = WL_IDLE_STATUS;
-IPAddress hyperrailIp(192, 168, 1, 1);
-WiFiServer server(80);
-
 void setup() {
   pinMode(stp, OUTPUT);
   pinMode(dir, OUTPUT);
@@ -143,20 +136,23 @@ void setup() {
   pinMode(EN, OUTPUT);
   resetBEDPins(); //Set step, direction, microstep and enable pins to default states
   Serial.begin(9600); //Open Serial connection for debugging
-  //Serial.println("OPEnS Lab HyperRails");
 
   //Comment the next line to run without serial monitor
   while (!Serial);
 
-  /******
-  * Initialize WiFi Hotspot
-  *******/
+  // Initialize WiFi hotspot
+  const char ssid[] = "HyperRail AP";
+  int wifiStatus = WL_IDLE_STATUS;
+  IPAddress ip(192, 168, 1, 1);
+  WiFiServer server(80);
+  
   WiFi.setPins(8, 7, 4, 2);
-  WiFi.config(hyperrailIp);
+  WiFi.config(ip);
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
     while (true);
   }
+
   wifiStatus = WiFi.beginAP(ssid);
   if (wifiStatus != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
@@ -178,12 +174,11 @@ void setup() {
   int count = 0;
 }
 
-// Loop Globals, this data persists between loops
+// Loop Globals, this data persists between program loops
 Config config;
 void loop() {
 
   decoder(); //This is where the data gets parsed to get the values from the GUI 
-  return;
   
   digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control 
   if (option == 1) {
@@ -230,11 +225,10 @@ void loop() {
  * If data is found, this new configuration is copied over to the global config for use in this bot
  */
 void decoder() {
-
   bool newData = false;
   String line = "";
+  
   WiFiClient client = server.available();   // listen for incoming clients
-
   // Read in HTTP headers, we don't care about these
   while (client && client.connected()) {
     if (client.available()) {
@@ -259,14 +253,12 @@ void decoder() {
     }
 
     String ack = "HTTP/1.1 200 OK\n"
-                 "Content-type:application/json\n"
+                 "Content-type: application/json\n"
                  "\r\n"
                  "{\"Status\": \"Recieved\"}\n"
                  "\n";
     client.println(ack);
-//    Serial.print("JSON: ");
-//    Serial.println(line);
-
+    
     if (client.connected()) {
       client.stop();
     }
@@ -285,21 +277,6 @@ void decoder() {
     humidity_activated = config.humidityActivated;
     temperature_activated = config.temperatureActivated;
     time_interval = config.timeInterval;
-
-    // Testing sending data back to server
-    OSCBundle sensor_bundle;
-    sensor_bundle.add("a")
-      .add("C").add(1)
-      .add("L").add(2)
-      .add("T").add(3)
-      .add("H").add(4)
-      .add("Lo").add((float) 5.2)
-      .add("Vbat").add((float) 6.0);
-  
-    OSCBundle *bundle = &sensor_bundle;
-
-    String str_json = buildJson(bundle);
-    Serial.println(str_json);
   }
 }
 
@@ -307,7 +284,6 @@ void parseRequest(String request) {
   // Watch out for memory issues, increase cap if necessary.
   const size_t capacity = JSON_OBJECT_SIZE(14) + JSON_ARRAY_SIZE(4) + 400;
   StaticJsonBuffer<capacity> buffer;
-  Serial.println(request);
 
   JsonObject& obj = buffer.parseObject(request.c_str());
   if (obj.success()) {
@@ -336,13 +312,36 @@ void parseRequest(String request) {
   }
 }
 
+void sendSensorData(String json) {
+  String len = String(json.length());
+  IPAddress ip(config.ipAddress[0], config.ipAddress[1], config.ipAddress[2], config.ipAddress[3]);
+  WiFiClient client;
+  
+  if(client.connect(ip, 3000)) {
+    String sensor_data = "POST /runs/create HTTP/1.1\n"
+                         "Content-Type: application/json\n"
+                         "Content-Length: " + len + "\n"
+                         "\r\n"
+                         + json + 
+                         "\n";
+    client.println(sensor_data);
+    // Don't care about the response
+    while (client.available()) {
+      client.read();
+    } 
+    if (client.connected()) {
+      client.stop();
+    }
+  } else {
+    Serial.println("Can't connect");
+  }
+}
+
 String buildJson(OSCBundle *bundle) {
-  const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6);
+  const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6) + 50;
   StaticJsonBuffer<capacity> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
 
-  Serial.print("Run Name: ");
-  Serial.println(config.runName);
   json.set("runName", config.runName);
   json.set("botName", config.botName);
 
@@ -407,21 +406,7 @@ void transmit_nRF_sensors() {
 
   //LOOM_DEBUG_Println("To Sensors");
   //LOOM_DEBUG_Println2("Location: ", location);
-//  print_bundle(&bndl);
-
-  OSCBundle sensor_bundle;
-  sensor_bundle.add("a")
-    .add("C").add(1)
-    .add("L").add(2)
-    .add("T").add(3)
-    .add("H").add(4)
-    .add("Lo").add((float) 5.2)
-    .add("Vbat").add((float) 6.0);
-
-  OSCBundle *bundle = &sensor_bundle;
-  
-  String str_json = buildJson(bundle);
-  
+//  print_bundle(&bndl);  
   return;
   
   bool is_sent = nrf_send_bundle(&bndl, sensor_node);
@@ -433,7 +418,6 @@ void transmit_nRF_sensors() {
   }
   if (is_sent) {
     Serial.println("Send to sensors success!");
-    //
     //delay(2000); //for testing fail states
     unsigned long start_listening = millis();
     
@@ -447,75 +431,15 @@ void transmit_nRF_sensors() {
   }
 
 
-//  OSCBundle sensor_bundle;
-//  nrf_receive_bundle(&sensor_bundle);
-//  print_bundle(&sensor_bundle);  
-  // Mock the bundle
+  OSCBundle sensor_bundle;
+  nrf_receive_bundle(&sensor_bundle);
+  print_bundle(&sensor_bundle);  
 
   Serial.println("Received sensor data!");
 
-  // TODO: Swap out "nrf sending to ethernet hub" to "wifi back to client". Code example below
-//  IPAddress hyperrail_ip(config.ipAddress[0], config.ipAddress[1], config.ipAddress[2], config.ipAddress[3]);
-//  WiFiClient hyperrail_host;
-//  
-//  Serial.println("Connecting...");
-//  if(hyperrail_host.connect(hyperrail_ip, 3000)) {
-//    Serial.println("Sending get request");
-//  
-//    String sensor_data = "POST /test HTTP/1.1\n"
-//                         "Content-Type: application/json\n"
-//                         "\r\n"
-//                         + str_json + 
-//                         "\n"
-//    hyperrail_host.println(sensor_data);
-//    // Don't care about the response
-//    while (hyperrail_host.available()) {
-//      Serial.print((char) hyperrail_host.read());
-//    } 
-//    if (hyperrail_host.connected()) {
-//      Serial.println("Disconnecting...");
-//      hyperrail_host.stop();
-//    }
-//  } else {
-//    Serial.println("Can't connect");
-//  }
-
-  bool is_uploaded = nrf_send_bundle(&sensor_bundle, ethernet_hub_node);
-  if (is_uploaded) {
-    Serial.println("Send to ethernet hub success!");
-  }
-  else {
-    nrf_send_bundle(&sensor_bundle, ethernet_hub_node);
-    Serial.println("Attempting to reach ethernet hub");
-  }
+  String str_json = buildJson(&sensor_bundle);
+  sendSensorData(str_json);
 }
-//}
-
-//   while(network.available()){
-//    RF24NetworkHeader header_from_sensors;
-//    memset(message_received, '\0', 300);
-//    network.read(header_from_sensors, &message_received, 299);
-//    Serial.print("Message size: ");
-//    Serial.println(strlen(message_received));
-//
-//    //OSCBundle bndl_received;
-//    RF24NetworkHeader header_to_hub(/*to node*/ ethernet_hub_node);
-//    bool ok_ok = network.write(header_to_hub,message_received,strlen(message_received));
-//
-//    if(ok_ok = true){
-//      Serial.println("Sent to ethernet hub!");
-//      //sent_flag = true;
-//
-//
-//    }else{
-//
-//      Serial.println("ethernet node fail");
-//    }
-//  }
-
-
-
-
 
 
 /******************************Function: travelHyperRail()**********************************
@@ -543,8 +467,6 @@ void travelHyperRail(long steps_total, int delay_time)
     delayMicroseconds(delay_time);
     digitalWrite(stp, LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(delay_time);
-
-    //Serial.println(x);
   }
 
   //// update location of sensors along the rail ////
