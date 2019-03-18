@@ -24,7 +24,7 @@ const metadata = {
         { 
             measurement: 'run',
             fields: {
-                value: Influx.FieldType.STRING,
+                value: Influx.FieldType.STRING
             },
             tags: ['botName', 'runName']
         }

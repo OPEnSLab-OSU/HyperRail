@@ -33,17 +33,15 @@ router.post('/execute', (req, res) => {
     if(!address) {
         logger.error('IP Address for the host could not be found');
         const status = 500;
-        const msg = logger.buildPayload(loggerl.level.ERROR, 'Could not find host IP Address programmatically');
+        const msg = logger.buildPayload(logger.level.ERROR, 'Could not find host IP Address programmatically');
         res.status(status).send(msg);
     } else {
         config.ipAddress = address;
-
         axios.post(`http://${bot_ip}/execute`, config)
             .then((botRes) => {
                 const str = 'Config uploaded to bot, executing...';
                 logger.ok(str);
-                let status;
-                let msg;
+                let status, msg;
                 if(botRes.data.Status === "Recieved"){
                     status = 200;
                     msg = logger.buildPayload(logger.level.OK, str);
