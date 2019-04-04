@@ -42,7 +42,7 @@ router.post('/execute', (req, res) => {
                 const str = 'Config uploaded to bot, executing...';
                 logger.ok(str);
                 let status, msg;
-                if(botRes.data.Status === "Recieved") {
+                if(botRes.data.status === "Recieved") {
                     status = 200;
                     msg = logger.buildPayload(logger.level.OK, str);
                 } else {
