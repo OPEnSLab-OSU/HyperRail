@@ -7,14 +7,14 @@
 
   This is the version that goes with Processing HyperRailGUI3
 
-  This system's default will be 1/16 microstepping or 6400 steps per revolution
+  This system's default will be 1/16 microstepping or 6180 steps per revolution
   using  a 0.9degree/step motor
 
-This is the Feather M0 with LoRa
+This is the Feather M0 
   
 */
 
-//Declare pin functions on Arduino
+//Declare pin functions on MO
 #define stp 9
 #define dir 10
 //#define MS1 4
@@ -38,7 +38,7 @@ int inPos = 0;
 
 int option = 0; //this will be used to store value from processing
 
-char inData[20];//This will be used for the incoming data from processing
+char inData[22];//This will be used for the incoming data from processing
 
 
 void setup() {
@@ -96,15 +96,25 @@ void loop() {
 
   digitalWrite(EN, LOW); //Pull enable pin low to set FETs active and allow motor control
   if (option == 1) {
-    travelHyperRail(total_steps, delay_time);
+    if(delay_time >= 5100){ //if this evaluates to true, then it will go slower than 1mm/s 
+      travelHyperRail_slow(total_steps, delay_time);
+    }else{
+      travelHyperRail(total_steps, delay_time);// Traveling faster than 1mm/s
+    }
+  } else if (option == 2 || option == 5) {
+    if(delay_time>=5100){//if this evaluates to true, then it will go slower than 1mm/s 
+      StepForwardDefault_slow(total_steps, delay_time);
+    }else{
+      StepForwardDefault(total_steps, delay_time);// Traveling faster than 1mm/s
+    }
+  }else if (option == 3 || option == 4) {
+    if(delay_time >=5100){//if this evaluates to true, then it will go slower than 1mm/s 
+      StepBackwardDefault_slow(total_steps, delay_time);
+    }else{
+      StepBackwardDefault(total_steps, delay_time);// Traveling faster than 1mm/s
+    }
     //user_input = Serial.read();//This will clear the buffer
-  } else if (option == 2) {
-    StepForwardDefault(total_steps, delay_time);
-    //user_input = Serial.read();//This will clear the buffer
-  } else if (option == 3) {
-    StepBackwardDefault(total_steps, delay_time);
-    //user_input = Serial.read();//This will clear the buffer
-  } else {
+  }else{
     Serial.println("Invalid input");
   }
   //Serial.print("This is what is the value of Serial.available() after if statments: " );//for testing
@@ -128,57 +138,18 @@ void decoder()
   if (Serial.available() > 0)
   {
     String data_str = Serial.readString();//reads in the string
-    Serial.println(data_str);//For testing
-    data_str.toCharArray(inData, 20);//converts the string into char array
-
-
-
+    //Serial.println(data_str);//For testing
+    data_str.toCharArray(inData, 22);//converts the string into char array
 
   }
 
-  /*
-
-    char val = ' ' ;
-    while(Serial.available() > 0 && val != ']')
-    {
-    val = Serial.read();
-    Serial.println("val: ");// for testing
-    Serial.println(val);// for testing
-
-    if(val == '[')
-    {
-      inPos = 0;
-      inData[inPos] = '\0';
-
-      //read  to the end of the data
-      while(val != ']' && inPos<20)
-      {
-
-        //Read the next letter
-        val = Serial.read();
-        Serial.println(val);//for testing
-        if(val != ']')
-        {
-          inData[inPos] = val;
-          inPos++;
-          inData[inPos] = '\0';
-        }
-      }
-    }
-    }
-
-  */
-  //if(inPos > 0)
-  //{
   int numVals = sscanf(inData, "[O:%d ,S:%ld ,D:%d", &option, &total_steps, &delay_time);
-  Serial.print("Number of values parsed: ");
-  Serial.println(numVals);
-  Serial.print("total_steps: ");
-  Serial.println(total_steps);
-  Serial.print("delay_time: ");
-  Serial.println(delay_time);
-
-  //}
+  //Serial.print("Number of values parsed: ");//for testing 
+  //Serial.println(numVals);// for testing 
+  //Serial.print("total_steps: ");//for testing 
+  //Serial.println(total_steps);//for testing 
+  //Serial.print("delay_time_A: ");// for testing 
+  //Serial.println(delay_time);// for testing
 }
 
 
@@ -196,7 +167,7 @@ void resetBEDPins()
   //digitalWrite(MS1, LOW);
   //digitalWrite(MS2, LOW);
   //digitalWrite(MS3, LOW);
-  digitalWrite(EN, HIGH);
+  digitalWrite(EN,HIGH); //If this is low, the motor will always be on holding its position. 
 }
 
 /******************************Function: travelHyperRail()**********************************
@@ -210,12 +181,12 @@ void resetBEDPins()
 */
 void travelHyperRail(long steps_total, int delay_time)
 {
-  Serial.println("Traveling the HyperRail!");
+  //Serial.println("Traveling the HyperRail!");// for testing 
 
-  Serial.print("My delay time is: " );//for testing
-  Serial.println(delay_time);//For testing
-  Serial.print("My total steps are: ");//for testing
-  Serial.println(steps_total);//for testing
+  //Serial.print("My delay time is: " );//for testing
+  //Serial.println(delay_time);//For testing
+  //Serial.print("My total steps are: ");//for testing
+  //Serial.println(steps_total);//for testing
 
   digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
   unsigned long startTime = micros();// start time // for testing
@@ -225,9 +196,9 @@ void travelHyperRail(long steps_total, int delay_time)
     delayMicroseconds(delay_time);
     digitalWrite(stp, LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(delay_time);
-    //Serial.println(x);
+    //Serial.println(x); 
   }
-
+/*
   unsigned long endTime = micros();//end time//for testing
 
   unsigned long totalTime = endTime - startTime;//for testing
@@ -235,12 +206,12 @@ void travelHyperRail(long steps_total, int delay_time)
   Serial.println(totalTime);//for testing
   Serial.print("Seconds: " );//for testing
   Serial.println(float(totalTime / (1 * pow(10,6)))); //for testing
-
+*/
 
 
   //Waits 100 milliseconds before going back the other way
   delay(500);
-  Serial.println("I made it after the delay. Will now be going back");// for testing
+  //Serial.println("I made it after the delay. Will now be going back");// for testing
 
   //This for loop will bring the carriage back to
   // the orignal postion
@@ -257,6 +228,72 @@ void travelHyperRail(long steps_total, int delay_time)
   //Serial.println("Enter new option!");
 }
 
+
+
+/******************************Function: travelHyperRail_slow()**********************************
+   Description:This funciton will move the carriage the whole path length forwards and back. The
+               main difference between this function and the other one is that this one will be used 
+               for speeds less than 1mm/s. 
+   Parameters:
+            -steps_total: This will be passed from the stepsper_length function.
+                          This number dictates the total number of steps needed to
+                          travel the whole rail.
+            - delay_time: This will tell the microcontroller how long to pause in between steps. 
+   Returns: N/A. It moves the carriage up and down the rail.
+*/
+void travelHyperRail_slow(long steps_total, int delay_time)
+{
+  //Serial.println("Using slow version");//for testing 
+  int delay_time_milli = delay_time/1000;
+  //Serial.println("Traveling the HyperRail!");// for testing 
+
+  //Serial.print("My delay time is: " );//for testing
+  //Serial.println(delay_time);//For testing
+  //Serial.print("My total steps are: ");//for testing
+  //Serial.println(steps_total);//for testing
+
+  digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
+  unsigned long startTime = micros();// start time // for testing
+  for (x = 1; x <= steps_total; x++) //Loop the forward stepping enough times for motion to be visible
+  {
+    digitalWrite(stp, HIGH); //Trigger one step forward
+    delay(delay_time_milli);
+    digitalWrite(stp, LOW); //Pull step pin low so it can be triggered again
+    delay(delay_time_milli);
+    //Serial.println(x); 
+  }
+
+  unsigned long endTime = micros();//end time//for testing
+
+  unsigned long totalTime = endTime - startTime;//for testing
+  Serial.print("Microseconds: ");//for testing
+  Serial.println(totalTime);//for testing
+  Serial.print("Seconds: " );//for testing
+  Serial.println(float(totalTime / (1 * pow(10,6)))); //for testing
+
+
+
+  //Waits 100 milliseconds before going back the other way
+  delay(500);
+  //Serial.println("I made it after the delay. Will now be going back");// for testing
+
+  //This for loop will bring the carriage back to
+  // the orignal postion
+  digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
+  x = 0;
+  for (x = 1; x <= steps_total; x++)
+  {
+    digitalWrite(stp, HIGH);
+    delay(delay_time_milli);
+    digitalWrite(stp, LOW);
+    delay(delay_time_milli);
+    //Serial.println(x);//for testing
+  }
+  //Serial.println("Enter new option!");
+}
+
+
+
 /***************************** Function: StepForwardDefault()***********************
    Description: This function will move the carriage all the way down and stay
                 at the end of the line. NO return.
@@ -266,12 +303,12 @@ void travelHyperRail(long steps_total, int delay_time)
 */
 void StepForwardDefault(long steps_total, int delay_time)
 {
-  Serial.println("\nMoving carriage forward.");
+  //Serial.println("\nMoving carriage forward.");// for testing 
 
-  Serial.print("My delay time is: " );//for testing
-  Serial.println(delay_time);//For testing
-  Serial.print("My total steps are: ");//for testing
-  Serial.println(steps_total);//for testing
+  //Serial.print("My delay time is: " );//for testing
+  //Serial.println(delay_time);//For testing
+  //Serial.print("My total steps are: ");//for testing
+  //Serial.println(steps_total);//for testing
 
   digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
   for (x = 1; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
@@ -285,20 +322,53 @@ void StepForwardDefault(long steps_total, int delay_time)
   //Serial.println("Enter new option");
 }
 
+
+
+/***************************** Function: StepForwardDefault_slow()***********************
+   Description: This function will move the carriage all the way down and stay
+                at the end of the line. NO return. This function is for when the carriage is 
+                moving slower than 1mm/s.
+   Parameters: -RPM: The speed at which the motor will be turning
+   Return: N/A. This function will only move the carriage forward, returns nothing.
+
+*/
+void StepForwardDefault_slow(long steps_total, int delay_time)
+{
+  int delay_time_milli = delay_time/1000;
+  //Serial.println("\nMoving carriage forward.");// for testing 
+
+  //Serial.print("My delay time is: " );//for testing
+  //Serial.println(delay_time);//For testing
+  //Serial.print("My total steps are: ");//for testing
+  //Serial.println(steps_total);//for testing
+
+  digitalWrite(dir, LOW); //Pull direction pin low to move "forward"
+  for (x = 1; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
+  {
+    digitalWrite(stp, HIGH); //Trigger one step forward
+    delay(delay_time_milli);
+    digitalWrite(stp, LOW); //Pull step pin low so it can be triggered again
+    delay(delay_time_milli);
+    //Serial.println(x);
+  }
+  //Serial.println("Enter new option");
+}
+
 /***************************** Function: StepBackwardDefault()***********************
    Description: This function will move the carriage all the way down and stay
                 at the end of the line. NO return.
-   Parameters: -RPM: The speed at which the motor will be turning
+   Parameters: steps, delay time 
    Return: N/A. This function will only move the carriage forward, returns nothing.
 
 */
 void StepBackwardDefault(long steps_total, int delay_time)
 {
-  Serial.println("\nMoving carriage backward.");
-  Serial.print("My delay time is: " );//for testing
-  Serial.println(delay_time);//For testing
-  Serial.print("My total steps are: ");//for testing
-  Serial.println(steps_total);//for testing
+  int delay_time_milli = delay_time/1000;
+  //Serial.println("\nMoving carriage backward.");// for testing 
+  //Serial.print("My delay time is: " );//for testing
+  //Serial.println(delay_time);//For testing
+  //Serial.print("My total steps are: ");//for testing
+  //Serial.println(steps_total);//for testing
   digitalWrite(dir, HIGH); //Pull direction pin high to move "backward"
   for (x = 1; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
   {
@@ -306,6 +376,35 @@ void StepBackwardDefault(long steps_total, int delay_time)
     delayMicroseconds(delay_time);
     digitalWrite(stp, LOW); //Pull step pin low so it can be triggered again
     delayMicroseconds(delay_time);
+    //Serial.println(x);
+  }
+  //Serial.println("Enter new option");
+}
+
+
+/***************************** Function: StepBackwardDefault_slow()***********************
+   Description: This function will move the carriage all the way down and stay
+                at the end of the line. NO return. This function will be used when the 
+                carriage is moving at speeds lower than 1mm/s. 
+   Parameters: steps, delay time 
+   Return: N/A. This function will only move the carriage forward, returns nothing.
+
+*/
+void StepBackwardDefault_slow(long steps_total, int delay_time)
+{
+  int delay_time_milli = delay_time/1000;
+  //Serial.println("\nMoving carriage backward.");// for testing 
+  //Serial.print("My delay time is: " );//for testing
+  //Serial.println(delay_time);//For testing
+  //Serial.print("My total steps are: ");//for testing
+  //Serial.println(steps_total);//for testing
+  digitalWrite(dir, HIGH); //Pull direction pin high to move "backward"
+  for (x = 1; x < steps_total; x++) //Loop the forward stepping enough times for motion to be visible
+  {
+    digitalWrite(stp, HIGH); //Trigger one step forward
+    delay(delay_time_milli);
+    digitalWrite(stp, LOW); //Pull step pin low so it can be triggered again
+    delay(delay_time_milli);
     //Serial.println(x);
   }
   //Serial.println("Enter new option");

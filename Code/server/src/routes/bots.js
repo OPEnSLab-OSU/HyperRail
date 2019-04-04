@@ -4,7 +4,7 @@ const router = express.Router();
 const logger = require('../support/logger');
 const ip = require('../support/ip');
 
-const bot_ip = process.env.BOT_IP_ADDRESS || '192.168.1.1';
+const botAddress = process.env.BOT_IP_ADDRESS || '192.168.1.1';
 
 // Trigger a run based on a config. 
 /* 
@@ -37,12 +37,12 @@ router.post('/execute', (req, res) => {
         res.status(status).send(msg);
     } else {
         config.ipAddress = address;
-        axios.post(`http://${bot_ip}/execute`, config)
+        axios.post(`http://${botAddress}/execute`, config)
             .then((botRes) => {
                 const str = 'Config uploaded to bot, executing...';
                 logger.ok(str);
                 let status, msg;
-                if(botRes.data.Status === "Recieved"){
+                if(botRes.data.Status === "Recieved") {
                     status = 200;
                     msg = logger.buildPayload(logger.level.OK, str);
                 } else {
