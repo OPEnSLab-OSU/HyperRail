@@ -1,3 +1,13 @@
+//Letter code: sensor type (units)
+let legend = {
+	"C": "CO2 (ppm)",
+	"L": "Lux (lumens)",
+	"T": "Temperature (C)",
+	"H": "Humidity (ppm)",
+	"Lo": "Location (m)",
+	"Vbat": "Battery Voltage (V)"
+}
+
 function loadRunData() {
 	if($("#filterSetting").prop("checked") == true)
 		var filter = 1;
@@ -5,47 +15,64 @@ function loadRunData() {
 		var filter = 0;
 	
 	$.getJSON("/runs/search", {			// Ask the server to search through the runs tables
-		bot: $("#botName").val(),		// Pass the queried bot name, run name, and sensor type
-		name: $("#runName").val(),
-		type: $("#sensorType").val(),
+		botName: $("#botName").val(),		// Pass the queried bot name, run name, and sensor type
+		runName: $("#runName").val(),
 		filter: filter
 	}, (entries) => {
-		let data = "";					//String to hold table information
+		let table = "";					//String to hold table information
+		let header= "<tr>" + 			//String to hold table header
+						"<th class='cell'>Bot Name</th>" +
+						"<th class='cell'>Run Name</th>" +
+						"<th class='cell'>Timestamp</th>";
 		let limit = parseInt($("#dataLimit").val());
 		let counter = 0;
+		
 		if(entries.length > 0) {		//If entries were found
 			if(Number.isNaN(limit)) {			//If no limit was specified, display all rows
-				$(entries).each((index, obj) => {		//For each entry, add it to the table string
-					data += "<tr>" +
-								"<td>"+obj.bot+"</td>" +
-								"<td>"+obj.name+"</td>" +
-								"<td>"+obj.time+"</td>" +
-								"<td>"+obj.type+"</td>" +
-								"<td>"+obj.value+"</td>" +
-							"</tr>";
+				$(entries).each(function(){		//For each entry, add it to the table string
+					table += "<tr>" +
+								"<td class='cell'>"+this.botName+"</td>" +
+								"<td class='cell'>"+this.runName+"</td>" +
+								"<td class='cell'>"+this.timestamp+"</td>";
+					$.each(this.data, function(index, data){
+						if(counter == 0){
+							header += "<th class='cell'>"+legend[index]+"</th>";
+						}
+						table += "<td class='cell'>"+data+"</td>";
+					});
+					table += "</tr>";
+					counter = 1;
 				});
 			}
 			else {						//If a limit was specified
-				$(entries).each((index, obj) => {		//For each entry
+				$(entries).each(function(){		//For each entry
 					if(counter < limit){				//Add each entry to the table if the limit was not reached
-						data += "<tr>" +
-									"<td>"+obj.bot+"</td>" +
-									"<td>"+obj.name+"</td>" +
-									"<td>"+obj.time+"</td>" +
-									"<td>"+obj.type+"</td>" +
-									"<td>"+obj.value+"</td>" +
-								"</tr>";
+						table += "<tr>" +
+								"<td class='cell'>"+this.botName+"</td>" +
+								"<td class='cell'>"+this.runName+"</td>" +
+								"<td class='cell'>"+this.timestamp+"</td>";
+						$.each(this.data, function(index, data){
+							if(counter == 0){
+								header += "<th class='cell'>"+legend[index]+"</th>";
+							}
+							table += "<td class='cell'>"+data+"</td>";
+						});
+						table += "</tr>";
 					}
 					counter ++;							//Increment the counter
 				});
 			}
 		} else {						//Else if no entries were found, notify the user
-			data += "<tr>" +
-						"<td colspan=5>No Data Found</td>" +
+			table += "<tr>" +
+						"<td colspan=100>No Data Found</td>" +
 					"</tr>";
 		}
-		$("#tableData > *").replaceWith("");	//Remove the old table
-		$("#tableData").append($(data));		//Append the new table
+		header += "</tr>";
+		$("#tableHead > *").remove();			//Remove the old table header
+		$("#tableHead").append($(header));		//Append the new table header
+		
+		$("#tableData > *").remove();			//Remove the old table
+		$("#tableData").append($(table));		//Append the new table
 	});
 }
 
@@ -232,7 +259,7 @@ $(document).ready(() => {
 	loadConfigList();
 	$("#runSearch").on("click", loadRunData);	//Search on button click
 	
-	$("#botName, #runName, #sensorType, #dataLimit").on("keypress", function(e){	//Search when enter is pressed
+	$("#botName, #runName, #dataLimit").on("keypress", function(e){	//Search when enter is pressed
 		if(e.which == 13)
 			loadRunData();
 	});

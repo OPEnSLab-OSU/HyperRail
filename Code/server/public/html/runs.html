@@ -51,6 +51,13 @@
 		th, td {
 			border: 1px solid !important;
 		}
+		.cell {
+			padding-right: 8px !important;
+			padding-left: 8px !important;
+			padding-top: 4px !important;
+			padding-bottom: 4px !important;
+			text-align: center;
+		}
 		
 		#executeRun {
 			margin-left: 10px;
@@ -94,7 +101,7 @@
 		</ul>
 	</div>
 	<div class='content pure-g'>
-		<div class='pure-u-1 pure-u-lg-14-24'>
+		<div class='pure-u-1 pure-u-xl-16-24'>
 			<h2 class='header'>Search Collection Runs</h2>
 			<form class='pure-form'>
 				<fieldset>
@@ -111,10 +118,6 @@
 							<input id='runName' class='pure-u-23-24' type='text'></input>
 						</div>
 						<div class='pure-u-4-24'>
-							<label for='sensorType'>Sensor Type:</label>
-							<input id='sensorType' class='pure-u-23-24' type='text'></input>
-						</div>
-						<div class='pure-u-4-24'>
 							<label for='dataLimit'>Limit Rows Displayed:</label>
 							<input id='dataLimit' class='pure-u-23-24' type='number' min='0'></input>
 						</div>
@@ -123,21 +126,20 @@
 				</fieldset>
 			</form>
 			<table id='dataTable' class='pure-table'>
-				<thead>
+				<thead id='tableHead'>
 					<tr>
-						<th>Bot Name</th>
-						<th>Run Name</th>
-						<th>Timestamp</th>
-						<th>Sensor</th>
-						<th>Value</th>
+						<th class='cell'>Bot Name</th>
+						<th class='cell'>Run Name</th>
+						<th class='cell'>Timestamp</th>
 					</tr>
+					<!-- Append Header here -->
 				</thead>
 				<tbody id='tableData'>
 					<!-- Append Data here -->
 				</tbody>
 			</table>
 		</div>
-		<div id='executeRunSide' class='pure-u-1 pure-u-lg-10-24'>
+		<div id='executeRunSide' class='pure-u-1 pure-u-xl-8-24'>
 			<h2 class='header'>Execute Runs</h2>
 			<h4 class='smallHeader'>Config List:
 				<select id='configList'>
