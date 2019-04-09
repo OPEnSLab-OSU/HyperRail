@@ -44,13 +44,13 @@ router.post('/create', (req, res) => {
         });
 });
 
-// Params: Any tag defined in the db schema
-// Search the database for data entries
+/* Params: Any tag defined in the db schema
+   Search the database for data entries */
 router.get('/search', (req, res) => {
     const client = db.get();
     let dbQuery = `SELECT * FROM ${measure} WHERE `;
 	let empty = true;
-	let filter = req.query['filter'];
+	let filter = req.query.filter;
 
 	// Build query from parameters (if parameters exist)
 	for(let key in req.query) {
@@ -72,7 +72,18 @@ router.get('/search', (req, res) => {
     // Run query
     client.query(dbQuery)
         .then((result) => {
-            res.json(result);
+            // Simplify and de-stringify results
+            const status = 200;
+            let msg = [];
+            for(let i = 0;i < result.length;i++) {
+                msg.push({
+                    botName: result[i].botName,
+                    runName: result[i].runName,
+                    timestamp: result[i].time,
+                    data: JSON.parse(result[i].value)
+                });
+            }
+            res.status(status).send(result);
         })
         .catch((err) => {
             logger.error(err);
