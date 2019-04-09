@@ -24,50 +24,57 @@ function loadRunData() {
 						"<th class='cell'>Bot Name</th>" +
 						"<th class='cell'>Run Name</th>" +
 						"<th class='cell'>Timestamp</th>";
+						
 		let limit = parseInt($("#dataLimit").val());
-		let counter = 0;
+		if(Number.isNaN(limit))			//If no limit was specified
+			limit = entries.length;		//Set the limit equal to the number of entries	
+		let counter = 0;				//Counter to check if limit is reached
 		
 		if(entries.length > 0) {		//If entries were found
-			if(Number.isNaN(limit)) {			//If no limit was specified, display all rows
-				$(entries).each(function(){		//For each entry, add it to the table string
-					table += "<tr>" +
-								"<td class='cell'>"+this.botName+"</td>" +
-								"<td class='cell'>"+this.runName+"</td>" +
-								"<td class='cell'>"+this.timestamp+"</td>";
-					$.each(this.data, function(index, data){
-						if(counter == 0){
-							header += "<th class='cell'>"+legend[index]+"</th>";
+			let columns = {};			//Object to store all columns
+			
+			//Generate the header row
+			$(entries).each(function(){		//For each entry, add it to the table string
+				if(counter < limit){				//If the limit was not reached
+					$.each(this.data, function(index){	//For each entry, check for new column names
+						if(!(columns.hasOwnProperty(index))){	//If there's a new column
+							columns[index] = "";				//Store the new column as a property
+							if(legend.hasOwnProperty(index))	//If the column has been given a unique name
+								header += "<th class='cell'>"+legend[index]+"</th>";	//Display the unique name
+							else
+								header += "<th class='cell'>"+index+"</th>";			//Display the column name
 						}
-						table += "<td class='cell'>"+data+"</td>";
 					});
-					table += "</tr>";
-					counter = 1;
-				});
-			}
-			else {						//If a limit was specified
-				$(entries).each(function(){		//For each entry
-					if(counter < limit){				//Add each entry to the table if the limit was not reached
-						table += "<tr>" +
-								"<td class='cell'>"+this.botName+"</td>" +
-								"<td class='cell'>"+this.runName+"</td>" +
-								"<td class='cell'>"+this.timestamp+"</td>";
-						$.each(this.data, function(index, data){
-							if(counter == 0){
-								header += "<th class='cell'>"+legend[index]+"</th>";
-							}
-							table += "<td class='cell'>"+data+"</td>";
-						});
-						table += "</tr>";
-					}
-					counter ++;							//Increment the counter
-				});
-			}
-		} else {						//Else if no entries were found, notify the user
+				}
+				counter ++;
+			});
+			header += "</tr>";	//End the header row
+			
+			//Populate the table
+			counter = 0;		//Reset the counter
+			$(entries).each(function(){		//For each entry
+				if(counter < limit){				//Add each entry to the table if the limit was not reached
+					table += "<tr>" +
+							"<td class='cell'>"+this.botName+"</td>" +
+							"<td class='cell'>"+this.runName+"</td>" +
+							"<td class='cell'>"+this.timestamp+"</td>";
+					let sensors = this.data;			//Store the row's sensor data
+					$.each(columns, function(index){	//Check all possible columns
+						if(sensors.hasOwnProperty(index))	//If the row has data for a defined column
+							table += "<td class='cell'>"+sensors[index]+"</td>";	//Display the data
+						else
+							table += "<td class='cell'></td>";						//Else, display an empty data cell
+					});
+					table += "</tr>";		//End the row
+				}
+				counter ++;							//Increment the counter
+			});
+		} else {						//Else if no entries were found, append a row saying so
 			table += "<tr>" +
 						"<td colspan=100>No Data Found</td>" +
 					"</tr>";
 		}
-		header += "</tr>";
+		
 		$("#tableHead > *").remove();			//Remove the old table header
 		$("#tableHead").append($(header));		//Append the new table header
 		
