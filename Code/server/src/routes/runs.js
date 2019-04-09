@@ -4,19 +4,39 @@ const db = require('../support/db');
 const logger = require('../support/logger');
 
 // Table/Measure to put data in
-const measure = 'run';  
+const measure = 'run';
+
+// Live data. Prevents having to query the database constantly
+let liveData = {
+    battery: null
+};
+
+function saveLiveData(data) {
+    if("Vbat" in data) {
+        liveData.battery = data.Vbat;
+    }
+}
 
 /* JSON format expected for each posted data
 {
     "botName": "string",                        // Name of the hyper rail that made this request
     "runName": "string",                        // Name of the run. User defined.
-    "data": { some data }
+    "data": {
+        "C": integer,
+        "L": integer,
+        "T": integer,
+        "H": integer,
+        "Lo": float,
+        "Vbat": float,
+    }
 }
 */
 
 //Creating a data entry in the runs database
 router.post('/create', (req, res) => {
     const client = db.get();
+
+    // Format data for database
     const formatData = [{
         fields: {
             value: JSON.stringify(req.body.data)
@@ -27,6 +47,9 @@ router.post('/create', (req, res) => {
         },
         timestamp: new Date()
     }];
+
+    // Save live data
+    saveLiveData(req.body.data);
 
     // Write to database
     client.writeMeasurement(measure, formatData)
@@ -83,7 +106,7 @@ router.get('/search', (req, res) => {
                     data: JSON.parse(result[i].value)
                 });
             }
-            res.status(status).send(result);
+            res.status(status).send(msg);
         })
         .catch((err) => {
             logger.error(err);
@@ -92,6 +115,10 @@ router.get('/search', (req, res) => {
             const status = 500;
             res.status(status).send(msg);
         });
+});
+
+router.get('/livedata', (req, res) => {
+    res.status(200).send(liveData);
 });
 
 module.exports = router;
