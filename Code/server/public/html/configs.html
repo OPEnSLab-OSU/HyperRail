@@ -166,11 +166,14 @@
 							</label>
 							<input id='option' type='number' min='1' max='5'/>
 							
-							<label for='totalSteps'>Steps to Traverse Rail:</label>
-							<input id='totalSteps' type='number' min='0'/>
+							<label for='railLength'>Rail Length (m):</label>
+							<input id='railLength' type='number' min='0'/>
 							
-							<label for='delayTime'>Time between Steps (ms):</label>
-							<input id='delayTime' type='number' min='0'/>
+							<label for='spoolRadius'>Spool Radius (mm):</label>
+							<input id='spoolRadius' type='number' min='0'/>
+							
+							<label for='velocity'>Velocity (mm/s):</label>
+							<input id='velocity' type='number' min='0'/>
 						</div>
 						
 						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
@@ -182,8 +185,8 @@
 							<label for='stops'>Number of Intervals:</label>
 							<input id='stops' type='number' min='0'/>
 							
-							<label for='intervalSteps'>Steps per Interval:</label>
-							<input id='intervalSteps' type='number' min='0' value='0'/>
+							<label for='intervalDistance'>Distance per Interval (m):</label>
+							<input id='intervalDistance' type='number' min='0' value='0'/>
 							
 							<label for='timeInterval'>Time between Intervals (s):</label>
 							<input id='timeInterval' type='number' min='0' value='0'/>
@@ -232,7 +235,12 @@
 					<div class='pure-g'>
 						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
 							<b>General Settings:</b>
-							<label for='modifyConfigName' placeholder=''>Config Name:</label>
+							<label for='modifyConfigName' placeholder='' class='tooltip'>
+								<span class='tooltiplabel'>Config Name:</span>
+								<span class='tooltiptext'>
+									This will overwrite any existing<br>configurations with the same name<br>while deleting the edited config.<br>Be sure to check before saving.
+								</span>
+							</label>
 							<input id='modifyConfigName' type='text'/>
 							
 							<label for='modifyOption' class='tooltip'>
@@ -247,11 +255,14 @@
 							</label>
 							<input id='modifyOption' type='number' min='1' max='5'/>
 								
-							<label for='modifyTotalSteps'>Steps to Traverse Rail:</label>
-							<input id='modifyTotalSteps' type='number' min='0'/>
-								
-							<label for='modifyDelayTime'>Time between Steps (ms):</label>
-							<input id='modifyDelayTime' type='number' min='0'/>
+							<label for='modifyRailLength'>Rail Length (m):</label>
+							<input id='modifyRailLength' type='number' min='0'/>
+							
+							<label for='modifySpoolRadius'>Spool Radius (mm):</label>
+							<input id='modifySpoolRadius' type='number' min='0'/>
+							
+							<label for='modifyVelocity'>Velocity (mm/s):</label>
+							<input id='modifyVelocity' type='number' min='0'/>
 						</div>
 							
 						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
@@ -263,8 +274,8 @@
 							<label for='modifyStops'>Number of Intervals:</label>
 							<input id='modifyStops' type='number' min='0'/>
 								
-							<label for='modifyIntervalSteps'>Steps per Interval:</label>
-							<input id='modifyIntervalSteps' type='number' min='0'/>
+							<label for='modifyIntervalDistance'>Distance per Interval (m):</label>
+							<input id='modifyIntervalDistance' type='number' min='0'/>
 								
 							<label for='modifyTimeInterval'>Time between Interval (s):</label>
 							<input id='modifyTimeInterval' type='number' min='0'/>
