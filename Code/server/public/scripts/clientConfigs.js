@@ -33,30 +33,35 @@ function createConfig() {
 	else if ($("#option").val() < 1 || $("#option").val() > 5)	//If not empty, check if it is between 1 and 5
 		optErr = "Option must be an integer between 1 and 5.\n";
 	
-	if($("#totalSteps").val() == "")				//Check if the Steps to Traverse Rail is empty
-		err += "Steps to Traverse Rail, ";
-	else if ($("#totalSteps").val() < 0)			//If not empty, check if it is non-negative
-		numErr += "Steps to Traverse Rail, ";
+	if($("#railLength").val() == "")				//Check if the Rail Length is empty
+		err += "Rail Length, ";
+	else if ($("#railLength").val() <= 0)			//If not empty, check if it is 0 or less
+		numErr += "Rail Length, ";
 	
-	if($("#delayTime").val() == "")					//Check if the Time between Steps is empty
-		err += "Time between Steps, ";
-	else if ($("#delayTime").val() < 0)				//If not empty, check if it is non-negative
-		numErr += "Time between Steps, ";
+	if($("#spoolRadius").val() == "")				//Check if the Time between Steps is empty
+		err += "Spool Radius, ";
+	else if ($("#spoolRadius").val() <= 0)			//If not empty, check if it is 0 or less
+		numErr += "Spool Radius, ";
+		
+	if($("#velocity").val() == "")					//Check if the Time between Steps is empty
+		err += "Velocity, ";
+	else if ($("#velocity").val() <= 0)				//If not empty, check if it is 0 or less
+		numErr += "Velocity, ";
 	
 	if(intervalFlag == 1){	//Interval settings only matter if intervals are used
 		if($("#stops").val() == "")					//Check if the Number of Intervals is empty
 			err += "Number of Intervals, ";
-		else if ($("#stops").val() < 0)				//If not empty, check if it is non-negative
+		else if ($("#stops").val() <= 0)			//If not empty, check if it is 0 or less
 			numErr += "Number of Intervals, ";
 		
-		if($("#intervalSteps").val() == "")			//Check if the Steps per Intervals is empty
-			err += "Steps per Interval, ";
-		else if ($("#intervalSteps").val() < 0)		//If not empty, check if it is non-negative
-			numErr += "Steps per Interval, ";
+		if($("#intervalDistance").val() == "")		//Check if the Steps per Intervals is empty
+			err += "Distance per Interval, ";
+		else if ($("#intervalDistance").val() <= 0)	//If not empty, check if it is 0 or less
+			numErr += "Distance per Interval, ";
 		
 		if($("#timeInterval").val() == "")			//Check if the Time between Intervals is empty
 			err += "Time between Intervals, ";
-		else if ($("#timeInterval").val() < 0)		//If not empty, check if it is non-negative
+		else if ($("#timeInterval").val() <= 0)		//If not empty, check if it is 0 or less
 			numErr += "Time between Intervals, ";
 	}
 
@@ -67,7 +72,7 @@ function createConfig() {
 				err += "\n";
 		}
 		if(numErr != "")									//Format number errors
-			numErr = numErr.slice(0, -2) + " must be a non-negative number.";
+			numErr = numErr.slice(0, -2) + " must be greater than 0.";
 		alert(optErr + err + numErr);		//Alert the user
 		return;
 	}
@@ -99,10 +104,11 @@ function createConfig() {
 	
 	var info = {	//Object to store ALL data, except config name, and pass to AJAX request
 		option: parseInt($("#option").val()),
-		totalSteps: parseInt($("#totalSteps").val()),
-		delayTime: parseInt($("#delayTime").val()),
+		railLength: parseFloat($("#railLength").val()),
+		spoolRadius: parseFloat($("#spoolRadius").val()),
+		velocity: parseFloat($("#velocity").val()),
 		intervalFlag: intervalFlag,
-		intervalSteps: parseInt($("#intervalSteps").val()),
+		intervalDistance: parseFloat($("#intervalDistance").val()),
 		stops: parseInt($("#stops").val()),
 		luxActivated: luxActivated,
 		co2Activated: co2Activated,
@@ -135,13 +141,14 @@ function createConfig() {
 function clearConfig() {
 	$("#configName").val("");
 	$("#option").val("");
-	$("#delayTime").val("");
-	$("#totalSteps").val("");
+	$("#railLength").val("");
+	$("#spoolRadius").val("");
+	$("#velocity").val("");
 	
 	
 	$("#intervalFlag").prop("checked", false);
 	$("#stops").val("");
-	$("#intervalSteps").val(0);
+	$("#intervalDistance").val(0);
 	$("#timeInterval").val(0);
 	
 	$("#luxActivated").prop("checked", false);
@@ -164,15 +171,16 @@ function loadConfig() {
 			$("#modifyConfigName").val($("#configList option:selected").text());					//Fill in Config Name field
 			$("#modifyConfigName").prop("placeholder", $("#configList option:selected").text());	//Fill in Config Name field placeholder, used in server to delete old file
 			$("#modifyOption").val(config.option);					//Fill in Option value
-			$("#modifyDelayTime").val(config.delayTime);			//Fill in Time between Steps
-			$("#modifyTotalSteps").val(config.totalSteps);			//Fill in Steps to Traverse Rail
+			$("#modifyRailLength").val(config.railLength);			//Fill in Rail Length
+			$("#modifySpoolRadius").val(config.spoolRadius);		//Fill in Steps to Traverse Rail
+			$("#modifyVelocity").val(config.velocity);				//Fill in Velocity
 			
 			if(config.intervalFlag == 0)							//Convert Interval Flag integer to checkbox status
 				$("#modifyIntervalFlag").prop("checked", false);
 			else
 				$("#modifyIntervalFlag").prop("checked", true);
 			$("#modifyStops").val(config.stops);					//Fill in Number of Intervals
-			$("#modifyIntervalSteps").val(config.intervalSteps);	//Fill in Steps per Interval
+			$("#modifyIntervalDistance").val(config.intervalDistance);	//Fill in Distance per Interval
 			$("#modifyTimeInterval").val(config.timeInterval);		//Fill in Time between Intervals
 			
 			if(config.luxActivated == 0)							//Convert Lux Sensor Flag integer to checkbox status
@@ -223,30 +231,35 @@ function saveConfig() {
 	else if ($("#modifyOption").val() < 1 || $("#modifyOption").val() > 5)	//If not empty, check if it is between 1 and 5
 		optErr += "Option must be an integer between 1 and 5.\n";
 	
-	if($("#modifyTotalSteps").val() == "")				//Check if the Steps to Traverse Rail is empty
-		err += "Steps to Traverse Rail, ";
-	else if ($("#modifyTotalSteps").val() < 0)			//If not empty, check if it is non-negative
-		numErr += "Steps to Traverse Rail, ";
+	if($("#modifyRailLength").val() == "")				//Check if the Rail Length is empty
+		err += "Rail Length, ";
+	else if ($("#modifyRailLength").val() <= 0)			//If not empty, check if it is 0 or less
+		numErr += "Rail Length, ";
 	
-	if($("#modifyDelayTime").val() == "")				//Check if the Time between Steps is empty
-		err += "Time between Steps, ";
-	else if ($("#modifyDelayTime").val() < 0)			//If not empty, check if it is non-negative
-		numErr += "Time between Steps, ";
+	if($("#modifySpoolRadius").val() == "")				//Check if the Spool Radius is empty
+		err += "Spool Radius, ";
+	else if ($("#modifySpoolRadius").val() <= 0)		//If not empty, check if it is 0 or less
+		numErr += "Spool Radius, ";
+	
+	if($("#modifyVelocity").val() == "")				//Check if the Velocity is empty
+		err += "Velocity, ";
+	else if ($("#modifyVelocity").val() <= 0)			//If not empty, check if it is 0 or less
+		numErr += "Velocity, ";
 	
 	if(intervalFlag == 1){	//Interval settings only matter if intervals are used
 		if($("#modifyStops").val() == "")				//Check if the Number of Intervals is empty
 			err += "Number of Intervals, ";
-		else if ($("#modifyStops").val() < 0)			//If not empty, check if it is non-negative
+		else if ($("#modifyStops").val() <= 0)			//If not empty, check if it is 0 or less
 			numErr += "Number of Intervals, ";
 		
-		if($("#modifyIntervalSteps").val() == "")		//Check if the Steps per Intervals is empty
-			err += "Steps per Interval, ";
-		else if ($("#modifyIntervalSteps").val() < 0)	//If not empty, check if it is non-negative
-			numErr += "Steps per Interval, ";
+		if($("#modifyIntervalDistance").val() == "")	//Check if the Distance per Intervals is empty
+			err += "Distance per Interval, ";
+		else if ($("#modifyIntervalDistance").val() <= 0)//If not empty, check if it is 0 or less
+			numErr += "Distance per Interval, ";
 		
 		if($("#modifyTimeInterval").val() == "")		//Check if the Time between Intervals is empty
 			err += "Time between Intervals, ";
-		else if ($("#modifyTimeInterval").val() < 0)	//If not empty, check if it is non-negative
+		else if ($("#modifyTimeInterval").val() <= 0)	//If not empty, check if it is 0 or less
 			numErr += "Time between Intervals, ";
 	}
 	
@@ -257,7 +270,7 @@ function saveConfig() {
 				err += "\n";
 		}
 		if(numErr != "")
-			numErr = numErr.slice(0, -2) + " must be a non-negative number.";	//Format number errors
+			numErr = numErr.slice(0, -2) + " must be greater than 0.";	//Format number errors
 		alert(optErr + err + numErr);		//Alert the user
 		return;
 	}
@@ -289,10 +302,11 @@ function saveConfig() {
 	
 	var info = {	//Object to store ALL data, except config name, and pass to AJAX request
 		option: parseInt($("#modifyOption").val()),
-		totalSteps: parseInt($("#modifyTotalSteps").val()),
-		delayTime: parseInt($("#modifyDelayTime").val()),
+		railLength: parseFloat($("#modifyRailLength").val()),
+		spoolRadius: parseFloat($("#modifySpoolRadius").val()),
+		velocity: parseFloat($("#modifyVelocity").val()),
 		intervalFlag: intervalFlag,
-		intervalSteps: parseInt($("#modifyIntervalSteps").val()),
+		intervalDistance: parseFloat($("#modifyIntervalDistance").val()),
 		stops: parseInt($("#modifyStops").val()),
 		luxActivated: luxActivated,
 		co2Activated: co2Activated,
