@@ -71,12 +71,12 @@ router.post('/edit', (req, res) => {
     
 	ensureDirs();
 
-	// Check if the config name exists
+	// Check if the edited config name does not exist
     if(!fs.existsSync(filePath)) {
         const msg = logger.buildPayload(logger.level.ERROR, 'Config does not exist');
         const status = 403;
         res.status(status).send(msg);
-    } else {
+    } else {	//If the edited config does exist
 		let msg1, msg2, status;
 		// Remove the old config file
 		logger.ok(`Removed config: ${oldFileName}`);
