@@ -329,7 +329,7 @@ void sendSensorData(String json) {
 }
 
 String buildJson(OSCBundle *bundle) {
-  const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6) + 50;
+  const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(6) + 100;
   StaticJsonBuffer<capacity> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
 
@@ -349,6 +349,7 @@ String buildJson(OSCBundle *bundle) {
 
   String str;
   json.printTo(str);
+  LOOM_DEBUG_Println(str);
   return str;
 }
 
@@ -387,28 +388,37 @@ void transmit_nRF_sensors() {
   .add((int) particle_activated)
   .add((float)(location / 1000.));
   
-  bool is_sent = nrf_send_bundle(&bndl, sensor_node);
-  while (!is_sent) {
-    network.update();
-    is_sent = nrf_send_bundle(&bndl, sensor_node);
-    LOOM_DEBUG_Println("Attempting to reach sensors");
-    delay(1000);
-  }
-  if (is_sent) {
-    LOOM_DEBUG_Println("Send to sensors success!");
-    unsigned long start_listening = millis();
-    
-    network.update();
-    while (!network.available() && millis() - start_listening < 10000) {
-      network.update();
-      LOOM_DEBUG_Println("Waiting to receive something on sensors end.");
-      delay(500);
-    }
-  }
+//  bool is_sent = nrf_send_bundle(&bndl, sensor_node);
+//  while (!is_sent) {
+//    network.update();
+//    is_sent = nrf_send_bundle(&bndl, sensor_node);
+//    LOOM_DEBUG_Println("Attempting to reach sensors");
+//    delay(1000);
+//  }
+//  if (is_sent) {
+//    LOOM_DEBUG_Println("Send to sensors success!");
+//    unsigned long start_listening = millis();
+//    
+//    network.update();
+//    while (!network.available() && millis() - start_listening < 10000) {
+//      network.update();
+//      LOOM_DEBUG_Println("Waiting to receive something on sensors end.");
+//      delay(1000);
+//    }
+//  }
 
 
   OSCBundle sensor_bundle;
-  nrf_receive_bundle(&sensor_bundle);
+  sensor_bundle.add("a")
+    .add("C").add(1)
+    .add("L").add(2)
+    .add("T").add(3)
+    .add("H").add(4)
+    .add("Lo").add((float) 5.6)
+    .add("Vbat").add((float) 7.8);
+  
+  
+//  nrf_receive_bundle(&sensor_bundle);
 
   #if LOOM_DEBUG==1
   print_bundle(&sensor_bundle);  

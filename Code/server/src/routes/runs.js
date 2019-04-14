@@ -54,13 +54,13 @@ router.post('/create', (req, res) => {
     // Write to database
     client.writeMeasurement(measure, formatData)
         .then(() => {
+            logger.ok("Data uploaded to database");
             const msg = logger.buildPayload(logger.level.OK, 'Data uploaded');
             const status = 201;
             res.status(status).send(msg);
         })
         .catch((err) => {
             logger.error(err);
-
             const msg = logger.buildPayload(logger.level.ERROR, 'Error uploading');
             const status = 500;
             res.status(status).send(msg);
