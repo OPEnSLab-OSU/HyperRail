@@ -23,7 +23,7 @@
 #include <WiFi101.h>
 #include <ArduinoJson.h>
 
-#define LOOM_DEBUG 1 // 1 - Enable Serial printing; 0 - Disables Serial printing
+#define LOOM_DEBUG 0 // 1 - Enable Serial printing; 0 - Disables Serial printing
 #define LOOM_DEBUG_Print(X)          (LOOM_DEBUG==0) ? :  Serial.print(X)
 #define LOOM_DEBUG_Println(X)        (LOOM_DEBUG==0) ? :  Serial.println(X)
 #define LOOM_DEBUG_Print2(X,Y)       LOOM_DEBUG_Print(X); LOOM_DEBUG_Print(Y)
@@ -276,7 +276,7 @@ void decoder() {
 
 void parseRequest(String request) {
   // Watch out for memory issues, increase cap if necessary.
-  const size_t capacity = JSON_OBJECT_SIZE(14) + JSON_ARRAY_SIZE(4) + 400;
+  const size_t capacity = JSON_ARRAY_SIZE(4) + JSON_OBJECT_SIZE(19) + 400;
   StaticJsonBuffer<capacity> buffer;
 
   JsonObject& obj = buffer.parseObject(request.c_str());
@@ -447,7 +447,6 @@ void travelHyperRail(long steps_total, int delay_time) {
 
   //// send data before returning ////
   transmit_nRF_sensors();
-  return;
   /*
     unsigned long endTime = micros();//end time//for testing
 
