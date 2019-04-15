@@ -8,14 +8,14 @@ The HyperRail software is split between two packages: the HyperRail Application 
 The HyperRail application has several dependencies:
 1. __NodeJS__
     * NPM and NodeJS can be downloaded [here](https://nodejs.org/).
-    * HyperRail server specific dependencies can be installed with `npm install` in the `./Code/server` directory.
+    * HyperRail server specific dependencies can be installed using `npm install` in the `./Code/server` directory.
 2. __InfluxDB__
     * InfluxDB can be downloaded [here](https://portal.influxdata.com/downloads/).
 3. __Arduino__
     * This project revolves around the usage of the [Adafruit Feather M0](https://www.adafruit.com/product/3010).
     * Arduino IDE can be downloaded [here](https://www.arduino.cc/en/Main/Software)
     * Once installed, the Arduino IDE must be configured for use with the Feather M0. Instructions can be found [here](https://learn.adafruit.com/adafruit-feather-m0-wifi-atwinc1500/setup) and [here](https://learn.adafruit.com/adafruit-feather-m0-wifi-atwinc1500/using-with-arduino-ide).
-    * Additionally, you will need to install several libraries. Most of these can be found through the Arduino IDE library manager.
+    * Additionally, you will need to install several libraries. Most of these can be found through the Arduino IDE library manager under the tools menu in the Arduino IDE itself.
         * For the main HyperRail bot:
             * [ArduinoJson](https://github.com/bblanchon/ArduinoJson)
             * [WiFi101](https://github.com/arduino-libraries/WiFi101)
@@ -27,7 +27,7 @@ The HyperRail application has several dependencies:
 # Running the HyperRail
 NOTE: Be sure you have all dependencies installed before attempting to run the HyperRail.
 ## HyperRail Bot
-1. Open `./Code/HyperRail/HyperRail_with_Server/HyperRail_with_Server.ino` in Arduino. Compile and upload this code to your bot. At this point the bot can be unplugged from your computer and connected to a different power source.
+1. Open `./Code/HyperRail/HyperRail_with_Server/HyperRail_with_Server.ino` in the Arduino IDE. Compile and upload this code to your bot. At this point the bot can be unplugged from your computer and connected to a different power source.
 
 ## HyperRail Application
 1. Start the Influx database. If the executable is added to your system path, it can be started with `influxd`, otherwise find that executable and start it manually.
