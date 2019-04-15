@@ -34,8 +34,11 @@ NOTE: Be sure you have all dependencies installed before attempting to run the H
 
 2. Start the HyperRail server with `npm start` from the `./Code/server` directory, verify the server starts successfully by the status messages printed to the console.
 
-3. In your browser, load up the user interface at the address `localhost:3000`.
-4. From here, you are free to create/delete configurations, start executions of the HyperRail bot, and you can browse the database for results from each execution.
+3. Connect to the HyperRail over WiFi. The SSID of the network is `HyperRail AP`.
+
+4. In your browser, load up the user interface at the address `localhost:3000`.
+
+5. From here, you are free to create/delete configurations, start executions of the HyperRail bot, and you can browse the database for results from each execution.
 
 # Development
 
