@@ -1,0 +1,28 @@
+{
+  "name": "hyperrail-server",
+  "version": "1.0.0",
+  "description": "Web Server for the HyperRail Application and System",
+  "main": "server.js",
+  "scripts": {
+    "test": "eslint ."
+  },
+  "start": "node server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OPEnSLab-OSU/HyperRail.git"
+  },
+  "author": "Adam Ruark",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OPEnSLab-OSU/HyperRail/issues"
+  },
+  "homepage": "https://github.com/OPEnSLab-OSU/HyperRail#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "express": "^4.16.4",
+    "influx": "^5.0.7"
+  },
+  "devDependencies": {
+    "eslint": "^5.13.0"
+  }
+}

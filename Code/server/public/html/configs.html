@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HyperRail</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel='stylesheet' href='../style/navbar.css' />
+	<link rel='stylesheet' href='../dependencies/pure-release-1.0.0/pure.css' />
+	<link rel='stylesheet' href='../dependencies/pure-release-1.0.0/grids-responsive.css' />
+	<script type='text/javascript' src='../dependencies/jquery-3.3.1.min.js'></script>
+	<script type='text/javascript' src='../scripts/clientConfigs.js'></script>
+	
+	<style>
+		/* Body of Page */
+		.content {
+			padding: 5px 20px;
+		}
+		.header {
+			margin: 10px 0px;
+		}
+		
+		.tooltiplabel {
+			border-bottom: 1px dotted black;
+		}
+		.tooltiptext {
+			visibility: hidden;
+			border: 1px solid dodgerblue;
+			border-radius: 0.25rem;
+			background-color: gainsboro;
+			color: black;
+			padding: 2px 4px;
+			margin-left: 5px;
+			position: absolute;
+		}
+		.tooltip:hover .tooltiptext {
+			visibility: visible;
+		}
+		
+		#configList {
+			margin: 0px 0px 8px 4px;
+			min-width: 150px !important;
+		}
+		.font-normal {
+			font-weight: normal;
+		}
+		#deleteConfig {
+			margin-left: 10px;
+		}
+		
+		.pure-controls {
+			margin-top: 10px !important;
+		}
+		
+		#confirmDelete {
+			width: 45%;
+		}
+		#cancelDelete {
+			float:right;
+			width: 45%;
+		}
+		
+		
+		/* The Modal (background) */
+		.modal {
+			display: none; 		/* Hidden by default */
+			position: fixed; 	/* Stay in place */
+			z-index: 100; 		/* Sit on top */
+			padding-top: 100px; /* Location of the box */
+			left: 0;
+			top: 0;
+			width: 100%; 		/* Full width */
+			height: 100%; 		/* Full height */
+			overflow: auto; 	/* Enable scroll if needed */
+			background-color: rgb(0,0,0); 		/* Fallback color */
+			background-color: rgba(0,0,0,0.4); 	/* Black w/ opacity */
+		}
+
+		/* Modal Content */
+		.modal-content {
+			position: relative;
+			background-color: #fefefe;
+			margin: auto;
+			padding: 0;
+			border: 1px solid #888;
+			width: 400px;
+			box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+			-webkit-animation-name: animatetop;
+			-webkit-animation-duration: 0.4s;
+			animation-name: animatetop;
+			animation-duration: 0.4s
+		}
+
+		/* Add Animation */
+		@-webkit-keyframes animatetop {
+			from {top:-300px; opacity:0} 
+			to {top:0; opacity:1}
+		}
+
+		@keyframes animatetop {
+			from {top:-300px; opacity:0}
+			to {top:0; opacity:1}
+		}
+
+		/* The Close Button */
+		.close {
+			color: white;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+		.close:hover, .close:focus {
+			color: black;
+			text-decoration: none;
+			cursor: pointer;
+		}
+
+		.modal-header {
+			padding: 2px 16px;
+			background-color: dodgerblue;
+			color: white;
+		}
+
+		.modal-body {
+			padding: 16px 16px;
+		}
+
+		.modal-footer {
+			padding: 2px 16px;
+			background-color: dodgerblue;
+			color: white;
+		}
+	</style>
+</head>
+<body>
+	<img class='logo' src='./OPEnS_Logo.jpg'>
+	
+	<div class='pure-menu navbar pure-menu-horizontal'>
+		<div class=''><h2 class='title'>HyperRail Application</h2></div>
+	
+		<ul class='pure-menu-list'>
+			<li class='pure-menu-item'><a href='./index.html?1' class='pure-menu-link'>Home</a></li>
+			<li class='pure-menu-item'><a href='./index.html?2' class='pure-menu-link'>Contact</a></li>
+			<li class='pure-menu-item'><a href='./runs.html' class='pure-menu-link'>Runs</a></li>
+			<li class='pure-menu-item'><a href='#' class='pure-menu-link active'>Configs</a></li>
+		</ul>
+	</div>
+	<div class='content pure-g'>
+		<div class='pure-u-lg-1-2 pure-u-1'>
+			<h2 class='header'>Create Configurations</h2>
+			<form id='createForm' value=1 class='pure-form pure-form-stacked'>
+				<fieldset>
+					<div class='pure-g'>
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>General Settings:</b>
+							<label for='configName'>Config Name:</label>
+							<input id='configName' type='text'/>
+							
+							<label for='option' class='tooltip'>
+								<span class='tooltiplabel'>Travel Option:</span>
+								<span class='tooltiptext'>
+									1 = regular travel<br>
+									2 = travel to end of rail<br>
+									3 = travel to start of rail<br>
+									4 = travel backwards<br>
+									5 = travel forwards
+								</span>
+							</label>
+							<input id='option' type='number' min='1' max='5'/>
+							
+							<label for='railLength'>Rail Length (m):</label>
+							<input id='railLength' type='number' min='0'/>
+							
+							<label for='spoolRadius'>Spool Radius (mm):</label>
+							<input id='spoolRadius' type='number' min='0'/>
+							
+							<label for='velocity'>Velocity (mm/s):</label>
+							<input id='velocity' type='number' min='0'/>
+						</div>
+						
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Interval Settings:</b>
+							<label for='intervalFlag' class='pure-checkbox'>Use Intervals?
+								<input id='intervalFlag' type='checkbox'/>
+							</label>
+							
+							<label for='stops'>Number of Intervals:</label>
+							<input id='stops' type='number' min='0'/>
+							
+							<label for='intervalDistance'>Distance per Interval (m):</label>
+							<input id='intervalDistance' type='number' min='0' value='0'/>
+							
+							<label for='timeInterval'>Time between Intervals (s):</label>
+							<input id='timeInterval' type='number' min='0' value='0'/>
+						</div>
+						
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Sensors:</b>
+							<label for='luxActivated' class='pure-checkbox'>Lux Activated:
+								<input id='luxActivated' type='checkbox'/>
+							</label>
+							
+							<label for='co2Activated' class='pure-checkbox'>CO2 Activated: 
+								<input id='co2Activated' type='checkbox'/>
+							</label>
+							
+							<label for='particleActivated' class='pure-checkbox'>Particle Activated: 
+								<input id='particleActivated' type='checkbox'/>
+							</label>
+								
+							<label for='humidityActivated' class='pure-checkbox'>Humidity Activated:
+								<input id='humidityActivated' type='checkbox'/>
+							</label>
+								
+							<label for='temperatureActivated' class='pure-checkbox'>Temperature Activated:
+								<input id='temperatureActivated' type='checkbox'/>
+							</label>
+						</div>
+					</div>
+					<div class='pure-controls'>
+						<button id='createConfig' type='button' class='pure-button pure-button-primary'>Create</button>
+						<button id='clearConfig' type='button' class='pure-button pure-button-primary'>Clear Form</button>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+		<div class='pure-u-lg-1-2 pure-u-1'>
+			<h2 class='header'>Modify Configurations</h2>
+			<h4 class='header'>Config List:
+				<select id='configList'>
+					<!-- Append Config List here -->
+				</select>
+				<button id='deleteConfig' class='pure-button pure-button-primary font-normal'>Delete Config</button>
+			</h4>
+			<form id='modifyForm' class='pure-form pure-form-stacked'>
+				<fieldset>
+					<div class='pure-g'>
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>General Settings:</b>
+							<label for='modifyConfigName' placeholder='' class='tooltip'>
+								<span class='tooltiplabel'>Config Name:</span>
+								<span class='tooltiptext'>
+									This will overwrite any existing<br>configurations with the same name<br>while deleting the edited config.<br>Be sure to check before saving.
+								</span>
+							</label>
+							<input id='modifyConfigName' type='text'/>
+							
+							<label for='modifyOption' class='tooltip'>
+								<span class='tooltiplabel'>Travel Option:</span>
+								<span class='tooltiptext'>
+									1 = regular travel<br>
+									2 = travel to end of rail<br>
+									3 = travel to start of rail<br>
+									4 = travel backwards<br>
+									5 = travel forwards
+								</span>
+							</label>
+							<input id='modifyOption' type='number' min='1' max='5'/>
+								
+							<label for='modifyRailLength'>Rail Length (m):</label>
+							<input id='modifyRailLength' type='number' min='0'/>
+							
+							<label for='modifySpoolRadius'>Spool Radius (mm):</label>
+							<input id='modifySpoolRadius' type='number' min='0'/>
+							
+							<label for='modifyVelocity'>Velocity (mm/s):</label>
+							<input id='modifyVelocity' type='number' min='0'/>
+						</div>
+							
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Interval Settings:</b>
+							<label for='modifyIntervalFlag' class='pure-checkbox'>Use Intervals?
+								<input id='modifyIntervalFlag' type='checkbox'/>
+							</label>
+								
+							<label for='modifyStops'>Number of Intervals:</label>
+							<input id='modifyStops' type='number' min='0'/>
+								
+							<label for='modifyIntervalDistance'>Distance per Interval (m):</label>
+							<input id='modifyIntervalDistance' type='number' min='0'/>
+								
+							<label for='modifyTimeInterval'>Time between Interval (s):</label>
+							<input id='modifyTimeInterval' type='number' min='0'/>
+						</div>
+							
+						<div class='pure-u-1 pure-u-sm-1-2 pure-u-md-8-24 pure-u-lg-11-24 pure-u-xl-8-24'>
+							<b>Sensors:</b>
+							<label for='modifyLuxActivated' class='pure-checkbox'>Lux Activated:
+								<input id='modifyLuxActivated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyCo2Activated' class='pure-checkbox'>CO2 Activated: 
+								<input id='modifyCo2Activated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyParticleActivated' class='pure-checkbox'>Particle Activated: 
+								<input id='modifyParticleActivated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyHumidityActivated' class='pure-checkbox'>Humidity Activated:
+								<input id='modifyHumidityActivated' type='checkbox'/>
+							</label>
+								
+							<label for='modifyTemperatureActivated' class='pure-checkbox'>Temperature Activated:
+								<input id='modifyTemperatureActivated' type='checkbox'/>
+							</label>
+						</div>
+					</div>
+					<div class='pure-controls'>
+						<button id='saveConfig' type='button' class='pure-button pure-button-primary'>Save Changes</button>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	<div id='deletePopUp' class='modal'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<span class="close">&times;</span>
+				<h2>Delete Configuration 
+					<span id='deleteConfigText'></span>?
+				</h2>
+			</div>
+			<div class='modal-body'>
+				<button id='confirmDelete' type='button' class='pure-button pure-button-primary'>Yes</button>
+				<button id='cancelDelete' type='button' class='pure-button pure-button-primary'>No</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

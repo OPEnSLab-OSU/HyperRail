@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HyperRail</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel='stylesheet' href='../style/navbar.css' />
+	<link rel='stylesheet' href='../dependencies/pure-release-1.0.0/pure.css' />
+	<link rel='stylesheet' href='../dependencies/pure-release-1.0.0/grids-responsive.css' />
+	<script type='text/javascript' src='../dependencies/jquery-3.3.1.min.js'></script>
+	
+	<style>
+		/* Body of Page */
+		.tabs {
+			padding: 5px 20px;
+		}
+		h2 {
+			margin: 10px 0px;
+		}
+	</style>
+	
+	<script>
+		$(document).ready(function(){
+			var query = window.location.search;
+			if(query != ""){
+				var tab = query[1];
+				$(".pure-menu-link").removeClass("active");
+				$(".pure-menu-link[value="+tab+"]").addClass("active");
+				$(".tabs > *").hide();
+				$(".tab"+tab).show();				
+			}
+			else{
+				$(".pure-menu-link[value=1]").addClass("active");
+				$(".tab1").show();
+			}
+			
+			$(".pure-menu-list").on("click", ".pure-menu-link", function(){
+				$(".pure-menu-link").removeClass("active");
+				$(this).addClass("active");
+				$(".tabs > *").hide();
+				$(".tab"+$(this).attr("value")).show();
+			});
+		});
+	</script>
+</head>
+<body>
+	<img class='logo' src='./OPEnS_Logo.jpg'>
+	
+	<nav class='pure-menu navbar pure-menu-horizontal'>
+		<div class=''><h2 class='title'>HyperRail Application</h2></div>
+	
+		<ul class='pure-menu-list'>
+			<li class='pure-menu-item'><a href='#' value=1 class='pure-menu-link'>Home</a></li>
+			<li class='pure-menu-item'><a href='#' value=2 class='pure-menu-link'>Contact</a></li>
+			<li class='pure-menu-item'><a href='./runs.html' class='pure-menu-link'>Runs</a></li>
+			<li class='pure-menu-item'><a href='./configs.html' class='pure-menu-link'>Configs</a></li>
+		</ul>
+	</nav>
+	<div class='tabs'>
+		<div class='tab1' style='display:none'>
+			<h2>Welcome to the HyperRail Application</h2>
+			
+			<div class='pure-g'>
+				<div class='pure-u-xl-10-24 pure-u-1'>
+					<h3>Automate Environmental Data Collection</h3>
+					Automate an environmental sensor package that travels along a railway setup.<br>
+					Create scheduling runs, choosing what data to collect and when.<br>
+					
+					<h3>Easy Data Analysis</h3>
+					View and analyze the data collected by various collection runs, bots, and sensors.
+				</div>
+				<div class='pure-u-xl-14-24 pure-u-1'>
+					<img src='./HyperRail_Setup.jpg'>
+				</div>
+			</div>
+		</div>
+		<div class='tab2' style='display:none;'>
+			<h2>Contact Info</h2>
+			<h4>
+				Product of the Openly Published Environmental Sensing (OPEnS) Lab: <br>
+				<a href='http://www.open-sensing.org/'>OPEnS Lab Website<a>
+			</h4>
+		</div>
+	</div>
+</body>
+</html>

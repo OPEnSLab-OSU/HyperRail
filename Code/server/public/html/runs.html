@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HyperRail</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel='stylesheet' href='../style/navbar.css' />
+	<link rel='stylesheet' href='../dependencies/pure-release-1.0.0/pure.css' />
+	<link rel='stylesheet' href='../dependencies/pure-release-1.0.0/grids-responsive.css' />
+	<script type='text/javascript' src='../dependencies/jquery-3.3.1.min.js'></script>
+	<script type='text/javascript' src='../scripts/clientRuns.js'></script>
+	
+	<style>
+		/* Body of Page */
+		.content {
+			padding: 5px 20px;
+		}
+		.header {
+			margin: 10px 0px;
+		}
+		.smallHeader {
+			margin: 5px 0px;
+		}
+		fieldset {
+			padding: 0px !important;
+		}
+		.pure-table {
+			border-color: black;
+		}
+		thead {
+			border-bottom: 1px solid black !important;
+		}
+		
+		#dataTable {
+			margin-top: 10px;
+		}
+		#dataTable th {
+			background-color: lightskyblue;
+			border-color: black !important;
+		}
+		#dataTable td {
+			background-color: white !important;
+			border-style: solid !important;
+			border-width: 0px 0px 1px !important;
+			border-color: black !important;
+		}
+		th, td {
+			border: 1px solid !important;
+		}
+		.cell {
+			padding-right: 8px !important;
+			padding-left: 8px !important;
+			padding-top: 4px !important;
+			padding-bottom: 4px !important;
+			text-align: center;
+		}
+		.scrollable {
+			font-size: 95%;
+			overflow-x: auto !important;
+			overflow-y: auto !important;
+			max-width: 98% !important;
+			max-height: 65vh !important;
+		}
+		
+		
+		#runSearch {
+			margin-top: 18px;
+			height: 36px;
+		}
+		
+		#executeRun {
+			margin-left: 10px;
+			font-weight: normal;
+		}
+		#executeRunSide th {
+			background-color: lightskyblue;
+		}
+		.tooltiplabel {
+			border-bottom: 1px dotted black;
+		}
+		.tooltiptext {
+			visibility: hidden;
+			border: 1px solid dodgerblue;
+			border-radius: 0.25rem;
+			background-color: gainsboro;
+			color: black;
+			padding: 2px 4px;
+			margin-left: 5px;
+			position: absolute;
+		}
+		.tooltip:hover .tooltiptext {
+			visibility: visible;
+		}
+		.pushTop {
+			margin-top: 10px;
+		}
+	</style>
+</head>
+<body>
+	<img class='logo' src='./OPEnS_Logo.jpg'>
+	
+	<div class='pure-menu navbar pure-menu-horizontal'>
+		<div class=''><h2 class='title'>HyperRail Application</h2></div>
+	
+		<ul class='pure-menu-list'>
+			<li class='pure-menu-item'><a href='./index.html?1' class='pure-menu-link'>Home</a></li>
+			<li class='pure-menu-item'><a href='./index.html?2' class='pure-menu-link'>Contact</a></li>
+			<li class='pure-menu-item'><a href='#' class='pure-menu-link active'>Runs</a></li>
+			<li class='pure-menu-item'><a href='./configs.html' class='pure-menu-link'>Configs</a></li>
+		</ul>
+	</div>
+	<div class='content pure-g'>
+		<div class='pure-u-1 pure-u-xl-16-24'>
+			<h2 class='header'>Search Collection Runs</h2>
+			<form class='pure-form'>
+				<fieldset>
+					<div class='pure-g'>
+						<div class='pure-u-4-24'>
+							<label for='botName'>Bot Name:</label>
+							<input id='botName' class='pure-u-23-24' type='text'></input>
+							<label for='filterSetting' class='pure-checkbox'>
+								Match Filters: <input id='filterSetting' type='checkbox' class='pushTop'/>
+							</label>
+						</div>
+						<div class='pure-u-4-24'>
+							<label for='runName'>Run Name:</label>
+							<input id='runName' class='pure-u-23-24' type='text'></input>
+						</div>
+						<div class='pure-u-4-24'>
+							<label for='dataLimit'>Limit Rows Displayed:</label>
+							<input id='dataLimit' class='pure-u-23-24' type='number' min='0'></input>
+						</div>
+						<button id='runSearch' type='button' class='pure-button pure-button-primary'>Search</button>
+					</div>
+				</fieldset>
+			</form>
+			<div class='scrollable'>
+				<table id='dataTable' class='pure-table'>
+					<thead id='tableHead' class='scrollable'>
+						<tr>
+							<th class='cell'>Bot Name</th>
+							<th class='cell'>Run Name</th>
+							<th class='cell'>Timestamp</th>
+						</tr>
+						<!-- Append Header here -->
+					</thead>
+					<tbody id='tableData' class='scrollable'>
+						<!-- Append Data here -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div id='executeRunSide' class='pure-u-1 pure-u-xl-8-24'>
+			<h2 class='header'>Execute Runs</h2>
+			<h4 class='smallHeader'>Config List:
+				<select id='configList'>
+					<!-- Append Config List here -->
+				</select>
+				<button id='executeRun' class='pure-button pure-button-primary'>Execute Run</button>
+			</h4>
+			<form class='pure-form pure-form-stacked pure-g'>
+				<fieldset>
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>Run Settings:</b>
+						<label for='runNameInput'>Run Name:</label>
+						<input id='runNameInput' type='text'/>
+						
+						<label for='botNameInput'>Bot Name:</label>
+						<input id='botNameInput' type='text'/>
+					</div>
+					
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>General Settings:</b>
+						<label for='modifyOption' class='tooltip'>
+							<span class='tooltiplabel'>Travel Option:</span>
+							<span class='tooltiptext'>
+								1 = regular travel<br>
+								2 = travel to end of rail<br>
+								3 = travel to start of rail<br>
+								4 = travel backwards<br>
+								5 = travel forwards
+							</span>
+						</label>
+						<input id='modifyOption' type='number' min='1' max='5'/>
+							
+						<label for='modifyRailLength'>Rail Length (m):</label>
+						<input id='modifyRailLength' type='number' min='0'/>
+						
+						<label for='modifySpoolRadius'>Spool Radius (mm):</label>
+						<input id='modifySpoolRadius' type='number' min='0'/>
+						
+						<label for='modifyVelocity'>Velocity (mm/s):</label>
+						<input id='modifyVelocity' type='number' min='0'/>
+					</div>
+						
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>Interval Settings:</b>
+						<label for='modifyIntervalFlag' class='pure-checkbox'>Use Intervals?
+							<input id='modifyIntervalFlag' type='checkbox'/>
+						</label>
+							
+						<label for='modifyStops'>Number of Intervals:</label>
+						<input id='modifyStops' type='number' min='0'/>
+							
+						<label for='modifyIntervalDistance'>Distance per Interval (m):</label>
+						<input id='modifyIntervalDistance' type='number' min='0'/>
+							
+						<label for='modifyTimeInterval'>Time between Interval (s):</label>
+						<input id='modifyTimeInterval' type='number' min='0'/>
+					</div>
+						
+					<div class='pure-u-1 pure-u-sm-1-2 pushTop'>
+						<b>Sensors:</b>
+						<label for='modifyLuxActivated' class='pure-checkbox'>Lux Activated:
+							<input id='modifyLuxActivated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyCo2Activated' class='pure-checkbox'>CO2 Activated: 
+							<input id='modifyCo2Activated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyParticleActivated' class='pure-checkbox'>Particle Activated: 
+							<input id='modifyParticleActivated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyHumidityActivated' class='pure-checkbox'>Humidity Activated:
+							<input id='modifyHumidityActivated' type='checkbox'/>
+						</label>
+							
+						<label for='modifyTemperatureActivated' class='pure-checkbox'>Temperature Activated:
+							<input id='modifyTemperatureActivated' type='checkbox'/>
+						</label>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+</body>
+</html>
