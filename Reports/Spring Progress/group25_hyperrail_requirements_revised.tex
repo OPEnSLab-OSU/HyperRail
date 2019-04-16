@@ -1,0 +1,197 @@
+\documentclass[onecolumn, draftclsnofoot,10pt, compsoc]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{setspace}
+\usepackage{pgfgantt}
+
+\usepackage{geometry}
+\geometry{textheight=9.5in, textwidth=7in}
+
+% 1. Fill in these details
+\def \CapstoneTeamName{		    Team 25}
+\def \CapstoneTeamNumber{		25}
+\def \GroupMemberOne{			Vincent Nguyen}
+\def \GroupMemberTwo{			Adam Ruark}
+\def \CapstoneProjectName{		HyperRail App}
+\def \CapstoneSponsorCompany{	OPEnS Lab}
+\def \CapstoneSponsorPerson{	Chet Udell}
+
+% 2. Uncomment the appropriate line below so that the document type works
+\def \DocType{	%Problem Statement
+				Requirements Document
+				%Technology Review
+				%Design Document
+				%Progress Report
+				}
+			
+\newcommand{\NameSigPair}[1]{\par
+\makebox[2.75in][r]{#1} \hfil 	\makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill		\makebox[.75in]{\hrulefill}}
+\par\vspace{-12pt} \textit{\tiny\noindent
+\makebox[2.75in]{} \hfil		\makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill	\makebox[.75in][r]{Date}}}}
+% 3. If the document is not to be signed, uncomment the RENEWcommand below
+\renewcommand{\NameSigPair}[1]{#1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\begin{titlepage}
+    \pagenumbering{gobble}
+    \begin{singlespace}
+        \hfill 
+        % 4. If you have a logo, use this includegraphics command to put it on the coversheet.
+        %\includegraphics[height=4cm]{CompanyLogo}   
+        \par\vspace{.2in}
+        \centering
+        \scshape{
+            \huge CS Capstone \DocType \par
+            {\large\today}\par
+            \vspace{.5in}
+            \textbf{\Huge\CapstoneProjectName}\par
+            \vfill
+            {\large Prepared for}\par
+            \Huge \CapstoneSponsorCompany\par
+            \vspace{5pt}
+            {\Large\NameSigPair{\CapstoneSponsorPerson}\par}
+            {\large Prepared by }\par
+            Group\CapstoneTeamNumber\par
+            % 5. comment out the line below this one if you do not wish to name your team
+            %\CapstoneTeamName\par 
+            \vspace{5pt}
+            {\Large
+                \NameSigPair{\GroupMemberOne}\par
+                \NameSigPair{\GroupMemberTwo}\par
+                %\NameSigPair{\GroupMemberThree}\par
+            }
+            \vspace{20pt}
+        }
+        \begin{abstract}
+        % 6. Fill in your abstract
+        This document lists the requirements placed by our client, Chet Udell, for the HyperRail Application.
+        
+        \end{abstract}     
+    \end{singlespace}
+\end{titlepage}
+\newpage
+\pagenumbering{arabic}
+\tableofcontents
+
+\clearpage
+
+% Revisions Table
+\section{Summarized Changes}
+\medskip
+\begin{centering}
+
+\begin{tabular}{|p{1in} | p{2.5in} | p{2.5in}|}
+\hline
+\textbf{Section} & \textbf{Original} & \textbf{New}\\\hline
+Title Page & Three team members. & Yihong left the team. Updated abstract. \\\hline
+
+Limitations & HyperRail is limited to areas with low interference. & Personal computer must be near the HyperRail to connect and interact with it.\\\hline
+
+Database Requirements & Database requires safe and secure user login and will also store configurations. & Database does not require user login and is stored locally on the user's machine. Configurations are stored locally on the user's machine.\\\hline
+
+Reliability & No direct connection to the hardware. & Direct connection to the hardware is allowed.\\\hline
+
+Efficiency & The application should support multiple users. & Removed. \\\hline
+
+Integrity & The application should display or log what user triggered which action. & The application will notify the user whether an action was successful or failed and display a server log message. \\\hline
+
+Portability & Mobile devices and personal computers can connect access the web application. & Personal computers can host and access the web application and can interact with the hardware by connecting to its network. \\\hline
+
+Safety & The system will only allow registered users to log in to interact with the application. & Removed. \\\hline
+
+Gantt Chart & Chart displays planned progression. & Chart matches actual progression. \\\hline
+\end{tabular}
+
+\end{centering}
+
+\pagebreak
+
+
+\section{Introduction}
+
+\subsection{Purpose}
+The purpose of this document is to provide an overview of the product to be delivered to the client by the end of Spring 2019. The client has listed a number of features, or project requirements, that they wish the capstone team to implement.
+
+
+\subsection{Scope}
+The hardware for the HyperRail project has already been decided upon and its code has been mostly developed. For this project, the hardware code needs to be optimized and a web-based graphical user interface and central server are needed to complete the software portion of the HyperRail application. The specified features are meant to allow a user to remotely communicate with a specified HyperRail system, which is handled and abstracted through the central server. The features have two levels of priority: required and convenient. Specifications that are required are needed for the system to be fully developed and deployed. Those that are convenient are stretch goals that are not required, but would be nice to have to make the system more robust.
+
+
+
+\section{Product Overview}
+
+\subsection{Product Description}
+The HyperRail is a small railway where an automated environmental sensor package, which contains a variety of different sensors, can traverse through a space and collect information as it travels along the railway. Using the HyperRail application, the sensor package's settings can be customized and monitored. The application currently allows the user to specify the speed of the package, current length of the rail, and the size of the spool used for the motors. It also monitors the position of the sensor package along the railway by calculating the number of motor steps it has taken and updates the position display in real-time. However, it currently requires a direct connection, wired or wireless, to the sensor package itself, limiting the HyperRail's use.
+
+
+\subsection{User Characteristics}
+Users of the HyperRail will be using it to monitor environmental changes. They can monitor levels of carbon dioxide, moisture, light levels, and other variables in the environment depending on the sensors used in the package. No programming experience is required, but the user will need to know how to interact with computers as the application abstracts the programming required to automate the HyperRail system. The user can interpret the data collected in any manner they would like.
+
+
+\subsection{Limitations}
+The HyperRail is limited to local area connections. The personal computer must be within range to connect to the hardware and use the application. The HyperRail is limited to safe or contained environments. Because the HyperRail system utilizes a physical setup, the railway or the sensor package can be damaged by entities in the environment. The computer and sensor package also requires electricity to function. Therefore, the HyperRail is limited to areas with power.
+
+
+
+\section{Functional Requirements}
+
+\subsection{Usability Requirements}
+This application must have a user interface that is intuitive to use. This means that the primary functionality of the app such as defining the parameters of the system's journey and uploading them to the robot should never be more than one click away. Secondary functionality such as saving and loading configurations can be a few clicks away. This is to provide a readable interface that is not cluttered. 
+
+The application must also provide feedback to the user when an action succeeds or fails. This can be done with a pop-up containing a status message for the last completed action.
+
+\subsection{Database Requirements}
+There are some attributes that must be stored in a database. First, all sensor data will be stored in a database that is locally stored on the user's machine. Configuration data will also be stored locally on the machine, but not in a database.
+
+\subsection{Code Quality}
+The underlying code that will be running this application must be maintainable for teams in the future to improve upon. This means that the code must be homogeneous and well documented. These qualities will allow the any portion of code to be understandable just from looking at its source and to have the reason for its existence documented.
+
+\subsection{Reliability} 
+The application needs to allow the user to operate the HyperRail system remotely, using the custom-developed web interface to finish their specific request.
+
+\subsection{Efficiency}
+The application needs to be able to handle different commands from users accurately, quickly, and efficiently.
+
+\subsection{Integrity}
+Integrity for this system is defined by how well it can track the commands from the users then handle those commands successfully. This means that user actions must be accountable by displaying whether a user's action was successful or failed and creating a server log message.
+
+\subsection{Flexibility}
+The application should account for future changes. If functions are modified or added to the application, version control should be used to ensure that there is working code.
+
+\subsection{Portability}
+This application should be able to interact and configure new sensor packages without major changes to the software. The software itself should be portable in the sense that personal computers can host and access the web application and interact with a specified HyperRail system by connecting the the hardware's network.
+
+\subsection{Safety}
+This application will need to utilize a secure connection to ensure that all content is controlled and private.
+
+
+\subsection{Performance Requirements}
+The essential measurement standard for the performance requirement is if the application is able to satisfy all the requirements and include all of the functionality needed to be deployed. Although incorporating the stretch goals is not mandatory for the application's release, it will make the application more robust. %If the application can handle the requirement more accurate (For example, the sponsor can be delivered to the more accurate location) or more efficient (the Hyperrail system can get the command and respond faster) than the user through the mic-controller, then our application totally meets the high-level performance requirements.
+
+
+\section{Stretch Goals}
+One stretch goal is to allow the sensor package to interact with existing actuators in the space. Because actuators are machines that perform simple movements on objects, such as valves or switches, this interaction will give the application additional capabilities depending on the application of the actuators.
+
+Another stretch goal is the capability to configure a fleet of sensor systems to use the same configuration. This allows for quick configuration of a group of sensor packages that are intended for the same purpose.
+
+Another feature that we would like to include is the capability to save and load configurations to allow users to share their settings across devices. This would make the application even more portable for users and allow the sensor system to be truly configured from anywhere. It would also allow the user to experiment with different configurations while preserving the old settings.
+
+
+
+\section{Gantt Chart}
+\begin{center}
+	\begin{ganttchart}{1}{6}
+		\gantttitle{Months}{6} \\
+		\gantttitlelist{1,2,3,4,5,6}{1} \\
+		\ganttbar{Design and Test Web Interface}{1}{6} \ganttnewline
+		\ganttbar{Design and Test Server}{1}{6} \ganttnewline
+		\ganttbar{Link Server with Hardware}{4}{6} \ganttnewline
+		\ganttbar{Optimize Code}{5}{6} \ganttnewline
+		\ganttbar{Work on Stretch Goals}{6}{6} \ganttnewline
+		\ganttbar{Documentation and Wrap Up}{5}{6}
+	\end{ganttchart}
+\end{center}
+
+
+\end{document}
