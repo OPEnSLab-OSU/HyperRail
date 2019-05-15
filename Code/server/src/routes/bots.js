@@ -64,11 +64,11 @@ router.post('/execute', (req, res) => {
 	Interval Steps = (steps_per_revolution * interval_length (mm)) / (2 * 3.1415926535 * spoolRadius) 
 	*/
 	let steps_per_revolution = 6180;
-	let RPM = (config.velocity * 60) / (2 * 3.1415926535 * config.spoolRadius);
+	let RPM = (config.velocity * 60) / (2 * 3.1415926535 * parseFloat(config.spoolRadius));
 	let delayTime = (60 / (RPM * steps_per_revolution) * Math.pow(10, 6)) / 2;
 	
-	let totalSteps = (steps_per_revolution * (config.railLength * 1000)) / (2 * 3.1415926535 * config.spoolRadius);
-	let intervalSteps = (steps_per_revolution * (config.intervalDistance * 1000)) / (2 * 3.1415926535 * config.spoolRadius);
+	let totalSteps = (steps_per_revolution * (parseFloat(config.railLength) * 1000)) / (2 * 3.1415926535 * parseFloat(config.spoolRadius));
+	let intervalSteps = (steps_per_revolution * (parseFloat(config.intervalDistance) * 1000)) / (2 * 3.1415926535 * parseFloat(config.spoolRadius));
 	
 	config.delayTime = parseInt(delayTime);
 	config.totalSteps = parseInt(totalSteps);

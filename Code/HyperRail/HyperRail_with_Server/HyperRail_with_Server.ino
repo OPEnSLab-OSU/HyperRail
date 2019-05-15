@@ -1,3 +1,5 @@
+
+
 /*
   Openly Published Environmental Sensing Lab
   Oregon State University
@@ -70,7 +72,7 @@ char message_received[300];
 
 //Declare pin functions on MO
 #define stp 9
-#define dir 12
+#define dir 10
 //#define MS1 4
 //#define MS2 5
 //#define MS3 6
@@ -475,6 +477,7 @@ void travelHyperRail(long steps_total, int delay_time) {
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
+  delay(500);
   for (int x = 0; x < steps_total; x++)
   {
     digitalWrite(stp, HIGH);

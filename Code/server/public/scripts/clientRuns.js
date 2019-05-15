@@ -1,7 +1,7 @@
 //Letter code: sensor type (units)
 let legend = {
 	"C": "CO2 (ppm)",
-	"Lux": "Lux (lumens)",
+	"L": "Lux (lumens)",
 	"T": "Temperature (C)",
 	"H": "Humidity (ppm)",
 	"Lo": "Location (m)",
