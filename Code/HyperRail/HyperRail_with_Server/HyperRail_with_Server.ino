@@ -477,7 +477,6 @@ void travelHyperRail(long steps_total, int delay_time) {
   //This for loop will bring the carriage back to
   // the orignal postion
   digitalWrite(dir, HIGH);//Pull direction pin to HIGH to move "Backward"
-  delay(500);
   for (int x = 0; x < steps_total; x++)
   {
     digitalWrite(stp, HIGH);
