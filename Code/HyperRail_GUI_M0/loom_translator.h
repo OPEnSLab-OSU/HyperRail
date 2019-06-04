@@ -424,58 +424,21 @@ void osc_extract_header_from_section(OSCMessage* msg, int section, char* result)
 // 
 // @return Family number
 //
-//int osc_extract_family_number(OSCMessage* msg) 
-//{
-//  char tmp[50];
-//  osc_extract_header_section(msg, 1, tmp);
-//  return (int)strtol(tmp + strlen(FAMILY), NULL, 10);
-//}
-//
-//int osc_extract_family_number(OSCBundle* bndl) 
-//{
-//  if ((bndl) && (bndl->size()>0)) {
-//    return osc_extract_family_number(bndl->getOSCMessage(0));
-//  } else {
-//    return -1;
-//  }
-//}
+int osc_extract_family_number(OSCMessage* msg) 
+{
+  char tmp[50];
+  osc_extract_header_section(msg, 1, tmp);
+  return (int)strtol(tmp + strlen(FAMILY), NULL, 10);
+}
 
-
-
-
-// void osc_extract_family(OSCMessage* msg, char* result)
-// {
-//  osc_extract_header_section(msg, 1, result); 
-//  snprintf(result, strchr(result, '_') - result + 1 , "%s", result);
-// }
-
-// char* osc_extract_family(OSCMessage* msg)
-// {
-//  char result[50];
-//  osc_extract_family(msg, result);
-//  return (char*)result;
-// }
-
-
-// void osc_extract_family(OSCBundle* bndl, char* result)
-// {
-//  if ((bndl) && (bndl->size()>0)) {
-//    osc_extract_family(bndl->getOSCMessage(0), result);
-//  } else {
-//    sprintf(result, "\0");
-//  }
-// }
-
-// char* osc_extract_family(OSCBundle* bndl)
-// {
-//  if ((bndl) && (bndl->size()>0)) {
-//    return osc_extract_family(bndl->getOSCMessage(0));
-//  } else {
-//    return "";
-//  }
-// }
-
-
+int osc_extract_family_number(OSCBundle* bndl) 
+{
+  if ((bndl) && (bndl->size()>0)) {
+    return osc_extract_family_number(bndl->getOSCMessage(0));
+  } else {
+    return -1;
+  }
+}
 
 
 
@@ -1416,17 +1379,17 @@ void convert_array(Tin src [], Tout dest[], int count)
 
 
 
-//
-//void append_to_bundle_key_value_aux(OSCBundle *bndl, char* address_string, char* key)
-//{
-//  char tmp[50];
-//  if ( bndl->size() ) {
-//    osc_extract_header_to_section(bndl->getOSCMessage(0), 2, tmp);
-//    sprintf(address_string, "%s/%s", tmp, key);
-//  } else {
+
+void append_to_bundle_key_value_aux(OSCBundle *bndl, char* address_string, char* key)
+{
+  char tmp[50];
+  if ( bndl->size() ) {
+    osc_extract_header_to_section(bndl->getOSCMessage(0), 2, tmp);
+    sprintf(address_string, "%s/%s", tmp, key);
+  } else {
 //    sprintf(address_string, "%s%d/%s%d%s", FAMILY, FAMILY_NUM, DEVICE, INIT_INST, key);
-//  }
-//}
+  }
+}
 
 
 // --- APPEND TO BUNDLE KEY VALUE ---
@@ -1436,54 +1399,54 @@ void convert_array(Tin src [], Tout dest[], int count)
 // address correlating to the key, and data 
 // to the provided value
 //
-//void append_to_bundle_key_value(OSCBundle *bndl, char* key, int elem)
-//{
-//  char address_string[255];
-//  append_to_bundle_key_value_aux(bndl, address_string, key);
-//  bndl->add(address_string).add( (int32_t)elem );
-//}
-//
-//void append_to_bundle_key_value(OSCBundle *bndl, char* key, String elem)
-//{
-//  char address_string[255];
-//  append_to_bundle_key_value_aux(bndl, address_string, key);
-//  bndl->add(address_string).add( elem.c_str() );
-//}
-//
-//template <typename T> 
-//void append_to_bundle_key_value(OSCBundle *bndl, char* key, T elem)
-//{
-//  char address_string[255];
-//  append_to_bundle_key_value_aux(bndl, address_string, key);
-//  bndl->add(address_string).add( elem );
-//}
+void append_to_bundle_key_value(OSCBundle *bndl, char* key, int elem)
+{
+  char address_string[255];
+  append_to_bundle_key_value_aux(bndl, address_string, key);
+  bndl->add(address_string).add( (int32_t)elem );
+}
+
+void append_to_bundle_key_value(OSCBundle *bndl, char* key, String elem)
+{
+  char address_string[255];
+  append_to_bundle_key_value_aux(bndl, address_string, key);
+  bndl->add(address_string).add( elem.c_str() );
+}
+
+template <typename T> 
+void append_to_bundle_key_value(OSCBundle *bndl, char* key, T elem)
+{
+  char address_string[255];
+  append_to_bundle_key_value_aux(bndl, address_string, key);
+  bndl->add(address_string).add( elem );
+}
 
 
 
 
-//
-//void append_to_bundle_key_value_block_aux(OSCMessage *msg, int elem)
-//{ msg->add((int32_t)elem); }
-//
-//void append_to_bundle_key_value_block_aux(OSCMessage *msg, String elem)
-//{ msg->add(elem.c_str()); }
-//
-//template <typename T> 
-//void append_to_bundle_key_value_block_aux(OSCMessage *msg, T elem) 
-//{ msg->add(elem); }
-//
-//template <typename T> 
-//void append_to_bundle_key_value_block(OSCBundle *bndl, char* keys[], T elems[], int count)
-//{
-//  char address_string[255];
-//  append_to_bundle_key_value_aux(bndl, address_string, "data");
-//  OSCMessage msg = OSCMessage(address_string);  
-//
-//  for (int i = 0; i < count; i++) {
-//    msg.add( keys[i] );
-//    append_to_bundle_key_value_block_aux(&msg, elems[i]); 
-//
-//  }
-//
-//  bndl->add(msg);
-//}
+
+void append_to_bundle_key_value_block_aux(OSCMessage *msg, int elem)
+{ msg->add((int32_t)elem); }
+
+void append_to_bundle_key_value_block_aux(OSCMessage *msg, String elem)
+{ msg->add(elem.c_str()); }
+
+template <typename T> 
+void append_to_bundle_key_value_block_aux(OSCMessage *msg, T elem) 
+{ msg->add(elem); }
+
+template <typename T> 
+void append_to_bundle_key_value_block(OSCBundle *bndl, char* keys[], T elems[], int count)
+{
+  char address_string[255];
+  append_to_bundle_key_value_aux(bndl, address_string, "data");
+  OSCMessage msg = OSCMessage(address_string);  
+
+  for (int i = 0; i < count; i++) {
+    msg.add( keys[i] );
+    append_to_bundle_key_value_block_aux(&msg, elems[i]); 
+
+  }
+
+  bndl->add(msg);
+}

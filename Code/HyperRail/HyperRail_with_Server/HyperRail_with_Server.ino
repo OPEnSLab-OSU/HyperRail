@@ -18,12 +18,12 @@
 
 
 //Import libraries
-#include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
-#include <OSCBundle.h>
 #include <WiFi101.h>
 #include <ArduinoJson.h>
+#include <RF24Network.h>
+#include <OSCBundle.h>
 
 #define LOOM_DEBUG 0 // 1 - Enable Serial printing; 0 - Disables Serial printing
 #define LOOM_DEBUG_Print(X)          (LOOM_DEBUG==0) ? :  Serial.print(X)
