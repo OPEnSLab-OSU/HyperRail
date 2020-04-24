@@ -343,7 +343,10 @@ void setup() {
   stepperY.setMaxSpeed(MaxSpeed/4); 
   stepperZ.setMaxSpeed(MaxSpeed/4); 
 
-  stepperXA.setAcceleration(100); 
+  stepperXA.setAcceleration(1.25); 
+  stepperXB.setAcceleration(1.25);
+  stepperY.setAcceleration(1.25);
+  stepperZ.setAcceleration(1.25);
 
   // MultiStepper 
 //   XSteppers.addStepper(stepperXA); 
