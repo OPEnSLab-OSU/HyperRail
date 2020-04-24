@@ -7,6 +7,7 @@
 //#include <Loom.h> 
 #include <ArduinoJson.h>
 #include <AccelStepper.h>
+#include <Stepper.h>
 //#include <Adafruit_MotorShield.h>
 
 // need to think about using this library for the X axis so that it can all be in sync
@@ -33,6 +34,8 @@
 #define X_Motor_Steps_Per_Rev  1700 
 #define Y_Motor_Steps_Per_Rev  400 
 #define Z_Motor_Steps_Per_Rev  400 
+
+// Define the stepper.h objects for X,Y, and Z axis 
 
 // define all interrupt pins for bump switches
 #define X0ABump 1
