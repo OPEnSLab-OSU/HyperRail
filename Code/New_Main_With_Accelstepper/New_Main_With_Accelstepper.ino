@@ -139,10 +139,10 @@ int ZMAX_Count = 0;
 
 
 // construct Motor objects 
-  AccelStepper stepperXA(1, STEPXA, DIRXA);
-  AccelStepper stepperXB(1, STEPXB, DIRXB);
-  AccelStepper stepperY(1, STEPY, DIRY);
-  AccelStepper stepperZ(1, STEPZ, DIRZ); // use functions to step 
+  AccelStepper stepperXA(AccelStepper::DRIVER, STEPXA, DIRXA);
+  AccelStepper stepperXB(AccelStepper::DRIVER, STEPXB, DIRXB);
+  AccelStepper stepperY(AccelStepper::DRIVER, STEPY, DIRY);
+  AccelStepper stepperZ(AccelStepper::DRIVER, STEPZ, DIRZ); // use functions to step 
 
 
 // put interrupt functions here 
@@ -343,10 +343,10 @@ void setup() {
   stepperY.setMaxSpeed(MaxSpeed/4); 
   stepperZ.setMaxSpeed(MaxSpeed/4); 
 
-  stepperXA.setAcceleration(1.25); 
-  stepperXB.setAcceleration(1.25);
-  stepperY.setAcceleration(1.25);
-  stepperZ.setAcceleration(1.25);
+  stepperXA.setAcceleration(200); 
+  stepperXB.setAcceleration(200);
+  stepperY.setAcceleration(200);
+  stepperZ.setAcceleration(200);
 
   // MultiStepper 
 //   XSteppers.addStepper(stepperXA); 
@@ -471,7 +471,7 @@ int i = 0, j = 0, k = 0;
 while(i == 1 or j == 1 or k == 1)
 {
  i = stepperXA.run(); 
-     stepperXB.run();
+     stepperXB.run()2
  j =  stepperY.run();
  k =  stepperZ.run();
 }
@@ -675,7 +675,7 @@ int xsteps =  mmToSteps(X_Location, X_Motor_Steps_Per_Rev ,Spool_Rad_X );
 
 int ysteps =  mmToSteps(Y_Location, Y_Motor_Steps_Per_Rev, Spool_Rad_YZ );
  
-    GoTo(xsteps, ysteps , 400); 
+    GoTo(1000, ysteps , 400); 
 
 
   // if rail is not calibrated then calibrate it 

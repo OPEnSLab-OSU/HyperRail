@@ -552,41 +552,41 @@ void GoTo(int x, int y, int z)
 
  
 //  // loop to step the apropriate number of steps and log positions 
-//  for(int i = 0; i<abs(x_steps); i++)
-//  {
-//    if(x_steps > 0)
-//      forwardX();
-//    else
-//      backwardX(); 
-//    delay(2);
-//  }
-//
-//    // loop to go apropriate number of steps and log positions 
-//    for(int j = 0; j<abs(y_steps); j++)
-//    {
-//      if(y_steps > 0)
-//      forwardY();
-//      else 
-//      backwardY(); 
-//
-//      delay(1); 
-//    }
-//
-//    // loop to move Z motor and log position 
-//      for (int k = 0; k<abs(z_steps); k++)
-//      {
-//        if(z_steps > 0)
-//        forwardZ(); 
-//        else
-//        backwardZ(); 
-//        delay(2);    
-//        Z_pos++;  
-//        //stepperZ.currentPosition(); 
-//      }
+  for(int i = 0; i<abs(x_steps); i++)
+  {
+   if(x_steps > 0)
+      forwardX();
+    else
+      backwardX(); 
+    delay(2);
+  }
+
+    // loop to go apropriate number of steps and log positions 
+    for(int j = 0; j<abs(y_steps); j++)
+    {
+      if(y_steps > 0)
+      forwardY();
+      else 
+      backwardY(); 
+
+      delay(1); 
+    }
+
+    // loop to move Z motor and log position 
+      for (int k = 0; k<abs(z_steps); k++)
+      {
+        if(z_steps > 0)
+        forwardZ(); 
+        else
+        backwardZ(); 
+        delay(2);    
+        Z_pos++;  
+        //stepperZ.currentPosition(); 
+      }
 
 
 // while loop should be able to move all motors simultaniously 
-
+/*
 int i = 0, j = 0, k = 0; 
 while(i<abs(x_steps) and j<abs(y_steps) and k<abs(z_steps))
 {
@@ -638,7 +638,7 @@ while(i<abs(x_steps) and j<abs(y_steps) and k<abs(z_steps))
 
   }
   
-}
+}*/
 
   
   return; 
@@ -839,7 +839,7 @@ int xsteps =  mmToSteps(X_Location, X_Motor_Steps_Per_Rev ,Spool_Rad_X );
 
 int ysteps =  mmToSteps(Y_Location, Y_Motor_Steps_Per_Rev, Spool_Rad_YZ );
  
-    GoTo(xsteps, ysteps , 400); 
+    GoTo(10000, ysteps , 400); 
 
 
   // if rail is not calibrated then calibrate it 
