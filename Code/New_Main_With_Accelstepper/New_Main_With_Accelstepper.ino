@@ -1,204 +1,251 @@
-// File: HyperRail_Main_New.ino
-// Name: Liam Duncan 
-//        Made for OPEnS Lab 
-// Date: 1/21/2020
-// Description: Code to Drive the HyperRail, Interface with Processing GUI, and Receive data from eGreenhouse
+ // File: HyperRail_Main_New.ino
+ // Name: Liam Duncan 
+ //        Made for OPEnS Lab 
+ // Date: 1/21/2020
+ // Description: Code to Drive the HyperRail, Interface with Processing GUI, and Receive data from eGreenhouse
 
-//#include <Loom.h> 
-#include <ArduinoJson.h>
-#include <AccelStepper.h>
-#include <Stepper.h>
-//#include <Adafruit_MotorShield.h>
+ //#include <Loom.h> 
+ #include <ArduinoJson.h>
+ #include <AccelStepper.h>
 
-// need to think about using this library for the X axis so that it can all be in sync
-#include <MultiStepper.h>
+ //const char* json_config = 
+ // "{\"general\":{\"device_name\":\"Device\",\"family\":\"Loom\",\"instance_num\":1,\"family_num\":0},\"components\":[{\"name\":\"Loom_DS3231\",\"params\":[11,true]},{\"name\":\"Loom_Interrupt_Manager\",\"params\":[0]},{\"name\":\"Loom_Sleep_Manager\",\"params\":[true,false,1]}]}"
+ //;
+ //
+ //// Set enabled modules
+ //LoomFactory<
+ //  Enable::Internet::Disabled,
+ //  Enable::Sensors::Enabled,
+ //  Enable::Radios::Disabled,
+ //  Enable::Actuators::Disabled,
+ //  Enable::Max::Disabled
+ //> ModuleFactory{};
+ //
+ //LoomManager Loom{ &ModuleFactory };
 
-
-//const char* json_config = 
-// "{\"general\":{\"device_name\":\"Device\",\"family\":\"Loom\",\"instance_num\":1,\"family_num\":0},\"components\":[{\"name\":\"Loom_DS3231\",\"params\":[11,true]},{\"name\":\"Loom_Interrupt_Manager\",\"params\":[0]},{\"name\":\"Loom_Sleep_Manager\",\"params\":[true,false,1]}]}"
-//;
-//
-//// Set enabled modules
-//LoomFactory<
-//  Enable::Internet::Disabled,
-//  Enable::Sensors::Enabled,
-//  Enable::Radios::Disabled,
-//  Enable::Actuators::Disabled,
-//  Enable::Max::Disabled
-//> ModuleFactory{};
-//
-//LoomManager Loom{ &ModuleFactory };
+ // define the steps per revolution for X,Y and Z motors 
+ #define X_SPR 1700
+ #define YZ_SPR 400 
 
 
-// Use this space to define the steps per revolution for X, Y and Z motors
-#define X_Motor_Steps_Per_Rev  1700 
-#define Y_Motor_Steps_Per_Rev  400 
-#define Z_Motor_Steps_Per_Rev  400 
+ // define all interrupt pins for bump switches
+ #define X0ABump 1
+ #define X0BBump 14
 
-// Define the stepper.h objects for X,Y, and Z axis 
+ #define XMaxABump 0
+ #define XMaxBBump 6
 
-// define all interrupt pins for bump switches
-#define X0ABump 1
-#define X0BBump 14
+ #define Y0Bump A4
+ #define YMaxBump 20
 
-#define XMaxABump 0
-#define XMaxBBump 6
+ #define Z0Bump 21
+ #define ZMaxBump 15
 
-#define Y0Bump A4
-#define YMaxBump 20
+ // Define Motor Pins X A,B
+ #define STEPXA 10
+ #define DIRXA 11
 
-#define Z0Bump 21
-#define ZMaxBump 15
+ #define STEPXB 12
+ #define DIRXB 13
 
-// Define Motor Pins X A,B
-#define STEPXA 10
-#define DIRXA 11
+ // Define Motor Pins for Y 
+ #define STEPY 9
+ #define DIRY 16
 
-#define STEPXB 12
-#define DIRXB 13
+ // Define Motor Pins for Z
+ #define STEPZ 17
+ #define DIRZ 19
 
-// Define Motor Pins for Y 
-#define STEPY 9
-#define DIRY 16
+ // foreward and backward definitions
+ #define FORWARD 0
+ #define BACKWARD 1
 
-// Define Motor Pins for Z
-#define STEPZ 17
-#define DIRZ 19
-
-// foreward and backward definitions
-#define FORWARD 0
-#define BACKWARD 1
-
-String JsonStr;   // Define a string object to receive JSON data from Processing GUI
-bool GotData = false; 
-
-// Length of X,Y,Z axis in meters
-int X_Location = 0; 
-int Y_Location = 0; 
-int Z_Location = 0; 
-
-// velocity you would like the rail to move at
-int Velocity; 
-
-int Spool_Rad_X = 32; 
-int Spool_Rad_YZ = 32; 
-
-// Length of X,Y,Z Axis converted from Meters to steps 
-int XA0_pos; 
-int XB0_pos; 
-int Y0_pos; 
-int Z0_pos; 
-int X0_pos; 
+ String JsonStr;   // Define a string object to receive JSON data from Processing GUI
 
 
-int XA_pos = 0; 
-int XB_pos = 0; 
-int Y_pos = 0; 
-int Z_pos = 0; 
-int X_pos = 0; 
+ // Length of X,Y,Z axis in meters
+ int X_Location = 0; 
+ int Y_Location = 0; 
+ int Z_Location = 0; 
 
-// Length of X,Y,Z Axis converted from Meters to steps 
-int XAMAX_pos; 
-int XBMAX_pos; 
-int YMAX_pos; 
-int ZMAX_pos; 
-int XMAX_pos;
+ // velocity you would like the rail to move at
+ int Velocity; 
 
-// Make flags for the interrupts 
-bool XA0Flag = false; 
-bool XAMAXFlag = false; 
-bool XB0Flag = false; 
-bool XBMAXFlag = false; 
-bool Y0Flag = false; 
-bool YMAXFlag = false; 
-bool Z0Flag = false; 
-bool ZMAXFlag = false; 
+ // variables to hold the spool radius for X, Y, Z axis;
+ int Spool_Rad_X = 32; 
+ int Spool_Rad_YZ = 32; 
+
+ // Position of the back end of the rail set by the calibration function
+ int XA0_pos; 
+ int XB0_pos; 
+ int Y0_pos; 
+ int Z0_pos; 
+ int X0_pos; 
+
+ // Position of the front end of the rail set by the calibration function
+ int XAMAX_pos; 
+ int XBMAX_pos; 
+ int YMAX_pos; 
+ int ZMAX_pos; 
+ int XMAX_pos;
+
+ // Make flags for the interrupts 
+ bool XA0Flag = false; 
+ bool XAMAXFlag = false; 
+ bool XB0Flag = false; 
+ bool XBMAXFlag = false; 
+ bool Y0Flag = false; 
+ bool YMAXFlag = false; 
+ bool Z0Flag = false; 
+ bool ZMAXFlag = false; 
+
+ // Calibration Speeds
+ int XCalSpeed = 600; 
+ int YZCalSpeed = 200; 
+
+ // Define the max stepper speed in Steps/second
+ int MaxSpeed = 2500; 
+
+ // calibration has happened or not
+ bool calibrated = false; 
+
+ // ensure that the interrupts do not trigger when switches are released 
+ int Y0_Count = 0; 
+ int XA0_Count = 0; 
+ int XB0_Count = 0; 
+ int Z0_Count = 0; 
+
+ int YMAX_Count = 0;
+ int XAMAX_Count = 0;
+ int XBMAX_Count = 0; 
+ int ZMAX_Count = 0; 
 
 
-// Calibration Speeds
-int XCalSpeed = 600; 
-int YZCalSpeed = 500; 
+// One stepper Motor Step 
+void onestep(int dir, int stepPin, int dirPin) {
 
-// Max Speed 
-int MaxSpeed = 1700; 
+// set the direction to turn
+   if (dir == 1){ 
+      digitalWrite(dirPin, HIGH);
+   }
+   else {
+      digitalWrite(dirPin, LOW);
+   }
 
+   digitalWrite(stepPin, HIGH);
+   delayMicroseconds(30);
+   digitalWrite(stepPin, LOW);
+   delayMicroseconds(30); 
+}
 
-// calibration has happened or not
-bool calibrated = false; 
+// Functions for Stepper Motor Stepping 
 
-// ensure that the interrupts do not trigger when switches are released 
-int Y0_Count = 0; 
-int XA0_Count = 0; 
-int XB0_Count = 0; 
-int Z0_Count = 0; 
+void forwardXA() {
+  onestep(FORWARD, STEPXA, DIRXA);
+}
 
-int YMAX_Count = 0;
-int XAMAX_Count = 0;
-int XBMAX_Count = 0; 
-int ZMAX_Count = 0; 
+void backwardXA() {
+  onestep(BACKWARD, STEPXA, DIRXA);
+}
 
+void forwardXB() {
+  onestep(FORWARD, STEPXB, DIRXB);
+}
 
-// construct Motor objects 
-  AccelStepper stepperXA(AccelStepper::DRIVER, STEPXA, DIRXA);
-  AccelStepper stepperXB(AccelStepper::DRIVER, STEPXB, DIRXB);
-  AccelStepper stepperY(AccelStepper::DRIVER, STEPY, DIRY);
-  AccelStepper stepperZ(AccelStepper::DRIVER, STEPZ, DIRZ); // use functions to step 
-
-
-// put interrupt functions here 
-
-void X0A_ISR()
+void forwardX()
 {
-  delay(5); 
-  XA0_Count++; 
+  onestep(FORWARD, STEPXA, DIRXA);
+  onestep(FORWARD, STEPXB, DIRXB);
+}
 
-  if(XA0_Count == 1)
-  {
-  XA0_pos = XA_pos; 
-  XA0Flag = true; 
-  Serial.println("XA0 Flag"); 
-  Serial.println(XA0_pos);
-  }
-  else
-  XA0_Count = 0; 
+void backwardX()
+{
+  onestep(BACKWARD, STEPXA, DIRXA);
+  onestep(BACKWARD, STEPXB, DIRXB);
+}
+
+void backwardXB() {
+  onestep(BACKWARD, STEPXB, DIRXB);
+}
+
+void forwardY() {
+  onestep(FORWARD, STEPY, DIRY);
+}
+
+void backwardY() {
+  onestep(BACKWARD, STEPY, DIRY);
 }
 
 
+void forwardZ() {
+  onestep(FORWARD, STEPZ, DIRZ);
+}
 
-void Y0_ISR()
-{
-  delay(5); 
-  Y0_Count++; 
+void backwardZ() {
+  onestep(BACKWARD, STEPZ, DIRZ);
+}
 
-  if(Y0_Count == 1)
-  {
-  Y0_pos = Y_pos; 
-  //stepperY.currentPosition(); 
-  Y0Flag = true; 
-  Serial.println("Y0 Flag"); 
-  Serial.println(Y0_pos);
-  }
+
+   // construct Motor objects 
+   AccelStepper stepperX(forwardX, backwardX);
+   AccelStepper stepperY(forwardY, backwardY);
+   AccelStepper stepperZ(forwardZ, backwardZ); 
+
+
+ // put interrupt functions here 
+
+ void X0A_ISR()
+ {
+   delay(5); 
+   XA0_Count++; 
+
+   if(XA0_Count == 1)
+   {
+   XA0_pos = stepperX.currentPosition(); 
+   XA0Flag = true; 
+   Serial.println("XA0 Flag"); 
+   Serial.println(XA0_pos);
+   }
+   else
+   XA0_Count = 0; 
+ }
+
+
+
+ void Y0_ISR()
+ {
+   delay(5); 
+   Y0_Count++; 
+
+   if(Y0_Count == 1)
+   {
+   Y0_pos = stepperY.currentPosition(); 
+   //stepperY.currentPosition(); 
+   Y0Flag = true; 
+   Serial.println("Y0 Flag"); 
+   Serial.println(Y0_pos);
+   }
   else
-  Y0_Count = 0; 
+   Y0_Count = 0; 
   
-}
+ }
 
-void X0B_ISR()
-{
-  delay(5); 
-  XB0_Count++; 
+ void X0B_ISR()
+ {
+   delay(5); 
+   XB0_Count++; 
 
-  if(XB0_Count == 1)
-  {
-  XB0_pos = XB_pos; 
-  //stepperXB.currentPosition(); 
-  XB0Flag = true; 
-  Serial.println("XB0 Flag"); 
-  Serial.println(XB0_pos);
-  }
-  else
-  XB0_Count = 0; 
-}
+   if(XB0_Count == 1)
+   {
+   XB0_pos = stepperX.currentPosition(); 
+   //stepperXB.currentPosition(); 
+   XB0Flag = true; 
+   Serial.println("XB0 Flag"); 
+   Serial.println(XB0_pos);
+   }
+   else
+   XB0_Count = 0; 
+ }
 
 
 // ISR for Z0 
@@ -209,7 +256,7 @@ void Z0_ISR()
 
   if(Z0_Count == 1) // if pressed 
   {
-  Z0_pos = Z_pos; 
+  Z0_pos = stepperZ.currentPosition(); 
   // stepperZ.currentPosition();  // set current position 
   Z0Flag = true;                        // set flag 
   Serial.println("Z0 Flag");            // print things for testing 
@@ -228,7 +275,7 @@ void XMaxA_ISR()
 
   if(XAMAX_Count == 1)
   {
-  XAMAX_pos = XA_pos; 
+  XAMAX_pos = stepperX.currentPosition(); 
   //stepperXA.currentPosition(); 
   XAMAXFlag = true; 
   Serial.println("XAMAX Flag"); 
@@ -247,7 +294,7 @@ void YMax_ISR()
 
   if(YMAX_Count == 1)
   {
-  YMAX_pos = Y_pos; 
+  YMAX_pos = stepperY.currentPosition(); 
   //stepperY.currentPosition(); 
   YMAXFlag = true; 
   Serial.println("YMAX Flag"); 
@@ -266,7 +313,7 @@ void XMaxB_ISR()
 
   if(XBMAX_Count == 1)
   {
-  XBMAX_pos = XB_pos; 
+  XBMAX_pos = stepperX.currentPosition(); 
   //stepperXB.currentPosition(); 
   XBMAXFlag = true; 
   Serial.println("XBMAX Flag"); 
@@ -285,7 +332,7 @@ void ZMax_ISR()
 
   if(ZMAX_Count == 1) // if pressed 
   {
-  ZMAX_pos = Z_pos; 
+  ZMAX_pos = stepperZ.currentPosition(); 
   //stepperZ.currentPosition();  // set current position 
   ZMAXFlag = true;                        // set flag 
   Serial.println("ZMAX Flag");            // print things for testing 
@@ -338,19 +385,14 @@ void setup() {
   pinMode(DIRZ, OUTPUT); 
 
   // Set Max Speed For all Steppers 
-  stepperXA.setMaxSpeed(MaxSpeed); 
-  stepperXB.setMaxSpeed(MaxSpeed); 
+  stepperX.setMaxSpeed(MaxSpeed); 
   stepperY.setMaxSpeed(MaxSpeed/4); 
   stepperZ.setMaxSpeed(MaxSpeed/4); 
 
-  stepperXA.setAcceleration(200); 
-  stepperXB.setAcceleration(200);
-  stepperY.setAcceleration(200);
-  stepperZ.setAcceleration(200);
+  stepperX.setAcceleration(20); 
+  stepperY.setAcceleration(20);
+  stepperZ.setAcceleration(20);
 
-  // MultiStepper 
-//   XSteppers.addStepper(stepperXA); 
-//   XSteppers.addStepper(stepperXB); 
 
   
   // initialize all interrupts for Bump Switches 
@@ -384,14 +426,14 @@ void setup() {
 
 int mmToSteps(double mm, int steps_per_revolution, double belt_radius) {
 
-        Serial.print("mm = ");
-        Serial.println(mm); 
+        // Serial.print("mm = ");
+        // Serial.println(mm); 
 
-        Serial.print("steps per rev = "); 
-        Serial.println(steps_per_revolution); 
+        // Serial.print("steps per rev = "); 
+        // Serial.println(steps_per_revolution); 
 
-        Serial.print("Radius = "); 
-        Serial.println(belt_radius); 
+        // Serial.print("Radius = "); 
+        // Serial.println(belt_radius); 
   
         return (int) round(mm/(2*3.14*belt_radius) * steps_per_revolution);
     }
@@ -431,12 +473,8 @@ void GetData()
   Velocity = doc["Velocity"]; 
   Spool_Rad_X = doc["SpoolRadX"]; 
   Spool_Rad_YZ = doc["SpoolRadYZ"]; 
-  
-   Serial.print("X_Location = ");
-   Serial.println(X_Location); 
 
-  // Set Bool to true so that this function does not run again 
-  GotData = true; 
+
   return; 
 }
 
@@ -446,201 +484,91 @@ void GetData()
 void GoTo(int x, int y, int z)
 {
 
-  // take the average of the two X motors 
-  int X_pos = (XA_pos + XB_pos)/2; 
-  
-
-  // set the distance in steps that each motor must go 
-  int x_steps = x - X_pos; 
-  int y_steps = y - Y_pos; 
-  int z_steps = z - Z_pos; 
-
-  Serial.print("x_steps = "); 
-  Serial.println(x_steps); 
-  
  // Use MoveTo Function to set desired position 
 
- stepperXA.moveTo(x_steps); 
- stepperXB.moveTo(x_steps);
- stepperY.moveTo(y_steps);
- stepperZ.moveTo(z_steps);
+ stepperX.moveTo(x); 
+ stepperY.moveTo(y);
+ stepperZ.moveTo(z);
 
-// while loop should be able to move all motors simultaniously 
-
-int i = 0, j = 0, k = 0; 
-while(i == 1 or j == 1 or k == 1)
-{
- i = stepperXA.run(); 
-     stepperXB.run()2
- j =  stepperY.run();
- k =  stepperZ.run();
-}
+ int i = 1, j = 1, k = 1; 
+ while(i == 1 or j == 1 or k == 1)
+ {
+   i =  stepperX.run(); 
+   j =  stepperY.run();
+   k =  stepperZ.run();
+ }
 
   return; 
 }
 
 
-
-/*
 // Function to calibrate all axis and set MAX and 
 // 0 points for all axis individually 
 void Calibrate()
 {
-  // flags to make sure that you are not accidentally setting positions
-  bool xaMaxing = false; 
-  bool xbMaxing = false; 
-  bool yMaxing = false; 
-  bool zMaxing = false; 
   
     while(!XA0Flag or !XAMAXFlag or !XB0Flag or !XBMAXFlag or !Y0Flag or !YMAXFlag or !Z0Flag or !ZMAXFlag)
     {
 
-
-
-//      if(!XA0Flag or !XB0Flag)
-//      {
-//        XSteppers.setSpeed(-XCalSpeed); 
-//        XSteppers.runSpeed(); 
-//      }
-
       // XA 0 point calibration 
       if(!XA0Flag)
-      {
-        backwardXA(); 
-        delay(1);
-        XA_pos--; 
-//        XSteppers.setSpeed(-XCalSpeed); 
-//        XSteppers.runSpeed(); 
+      {   
+      stepperX.setSpeed(-XCalSpeed); 
+      stepperX.runSpeed(); 
       }
-     // else if(!xaMaxing)
-//      {
-//        // logs 0 point for motor XA in steps 
-//        XA0_pos = stepperXA.currentPosition(); 
-//      }
 
       // XB 0 point calibration 
       if(!XB0Flag)
       {
-          backwardXB(); 
-          delay(1); 
-          XB_pos--; 
-//        stepperXB.setSpeed(-XCalSpeed); 
-//        stepperXB.runSpeed(); 
+        stepperX.setSpeed(-XCalSpeed); 
+        stepperX.runSpeed(); 
       }
-//      else if(!xbMaxing)
-//      {
-//        // logs the 0 point for motor XB in steps 
-//        XB0_pos = stepperXB.currentPosition(); 
-//      }
 
       // Y 0 point calibration 
       if(!Y0Flag)
       {
-        backwardY(); 
-        delay(1); 
-        Y_pos--; 
+        stepperY.setSpeed(-YZCalSpeed);
+        stepperY.runSpeed();
        }
-//      else if(!yMaxing)
-//      {
-//        // logs the 0 point for the Y axis in steps 
-//        Y0_pos = stepperY.currentPosition(); 
-//      }
+
 
       // Z 0 point calibration 
       if(!Z0Flag)
       {
-        backwardZ(); 
-        delay(1);
-        Z_pos--; 
-//        stepperZ.setSpeed(-YZCalSpeed); 
-//        stepperZ.runSpeed(); 
+       stepperZ.setSpeed(-YZCalSpeed); 
+       stepperZ.runSpeed(); 
       }
-//      else if(!zMaxing)
-//      {
-//        // log Z0 point in steps 
-//        Z0_pos = stepperZ.currentPosition(); 
-//      }
 
-
-      // XA Max Point calibration 
+     // XA Max Point calibration 
       if(XA0Flag and !XAMAXFlag)
       {
-        // go find max X point 
-        //xaMaxing = true; 
-//        stepperXA.setSpeed(XCalSpeed); 
-//        stepperXA.runSpeed();
-          forwardXA(); 
-          delay(1);
-          XA_pos++; 
+        stepperX.setSpeed(XCalSpeed); 
+        stepperX.runSpeed();
       }
-//      else if(xaMaxing) 
-//      {
-//        // log X max point 
-//        XAMAX_pos = stepperXA.currentPosition(); 
-//      }
-
 
       // XB Max Point Calibration 
       if(XB0Flag and !XBMAXFlag)
       {
-        // go find max X point 
-//        xbMaxing = true; 
-//        stepperXB.setSpeed(XCalSpeed); 
-//        stepperXB.runSpeed();
-          forwardXB(); 
-          delay(1); 
-          XB_pos++; 
+        stepperX.setSpeed(XCalSpeed); 
+        stepperX.runSpeed();
       }
-//      else if(xbMaxing)
-//      {
-//        // log X max point in steps 
-//        XBMAX_pos = stepperXB.currentPosition(); 
-//      }
 
       // Y Max Point Calibration 
       if(Y0Flag and !YMAXFlag)
       {
-        // go find max Y point 
-//        yMaxing = true; 
-//        stepperY.setSpeed(YZCalSpeed); 
-//        stepperY.runSpeed();
-
-         forwardY();
-         delay(1);  
-         Y_pos++; 
+        stepperY.setSpeed(YZCalSpeed); 
+        stepperY.runSpeed();
       }
-//      else if(yMaxing) 
-//      {
-//        // log Y max Position
-//        YMAX_pos = stepperY.currentPosition(); 
-//      }
-
 
       // Z max point calibration
       if(Z0Flag and !ZMAXFlag)
       {
-        // go find max Z point 
-//        zMaxing = true; 
-//        stepperZ.setSpeed(YZCalSpeed); 
-//        stepperXA.runSpeed();
 
-          forwardZ(); 
-          delay(1); 
-          Z_pos++; 
+        stepperZ.setSpeed(YZCalSpeed); 
+        stepperZ.runSpeed();
       }
-//      else if(zMaxing)
-//      {
-//        // log max Z point 
-//        ZMAX_pos = stepperZ.currentPosition(); 
-//      }
+
     }
-
-    // reset all flags
-    xaMaxing = false; 
-    xbMaxing = false; 
-    yMaxing = false; 
-    zMaxing = false; 
-
 
     XA0Flag = false; 
     XB0Flag = false; 
@@ -655,7 +583,6 @@ void Calibrate()
     calibrated = true; 
    
 }
-*/
 
 
 
@@ -663,24 +590,18 @@ void Calibrate()
 void loop() {
 
   // Read Json Object from Processing
-  if(Serial.available())
-  {
-//  JsonStr = Serial.readString(); 
-//  Serial.println(JsonStr); 
+  if(Serial.available()) 
     GetData();   
-  }
 
 // Convert Number of mm to steps for the GoTo Function
-int xsteps =  mmToSteps(X_Location, X_Motor_Steps_Per_Rev ,Spool_Rad_X );
-
-int ysteps =  mmToSteps(Y_Location, Y_Motor_Steps_Per_Rev, Spool_Rad_YZ );
+  int xsteps = mmToSteps(X_Location, X_SPR, Spool_Rad_X );
+  int ysteps = mmToSteps(Y_Location, YZ_SPR, Spool_Rad_YZ );
+  int zsteps = mmToSteps(Z_Location, YZ_SPR, Spool_Rad_YZ );
  
-    GoTo(1000, ysteps , 400); 
-
+  GoTo(xsteps, ysteps, zsteps); 
 
   // if rail is not calibrated then calibrate it 
 //  if(!calibrated)
 //    Calibrate(); 
 
-
-}
+ }
