@@ -470,9 +470,14 @@ void GetData()
   X_Location = doc["X_Location"]; 
   Y_Location = doc["Y_Location"]; 
   Z_Location = doc["Z_Location"]; 
-  Velocity = doc["Velocity"]; 
+  MaxSpeed = doc["Velocity"]; 
   Spool_Rad_X = doc["SpoolRadX"]; 
   Spool_Rad_YZ = doc["SpoolRadYZ"]; 
+
+  // Set Max Speed For all Steppers 
+  stepperX.setMaxSpeed(MaxSpeed); 
+  stepperY.setMaxSpeed(MaxSpeed/2); 
+  stepperZ.setMaxSpeed(MaxSpeed/2); 
 
 
   return; 
