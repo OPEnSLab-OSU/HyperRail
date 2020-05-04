@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en-US" dir = "ltr">
 <head>
-    <meta charset="utf-8">
     <title>HyperRail Control Interface</title>
-    <script defer src="src/index.js" charset = utf-8' > </script>
+    <script src="script.js" ></script> 
 </head>
 
 <body style = "background-color:skyblue;">
@@ -15,31 +14,83 @@
             <p>
                 <label> X-Coordinate </label>
                 <input type = "text" 
-                        id = X-Coordinate
+                        id = X
+                        value = "0"
                         /> 
             </p>
             <p>
                 <label> Y-Coordinate </label>
                 <input type = "text" 
-                        id = Y-Coordinate
+                        id = Y
+                        value = '0'
                         /> 
             </p>            
             <p>
                 <label> Z-Coordinate </label>
                 <input type = "text" 
-                        id = Z-Coordinate
-                        <!-- value = "Integer Value in mm"  -->
+                        id = Z
+                        value = '0'
+                        />   
+            </p>     
+            <p>
+                <label> X Spool Radius </label>
+                <input type = "text" 
+                        id = radX
+                        value = '32'
+                        /> 
+            </p>
+            <p>
+                <label> Y,Z Spool Radius </label>
+                <input type = "text" 
+                        id = radY
+                        value = '32'
+                        /> 
+            </p>            
+            <p>
+                <label> Max Velocity  </label>
+                <input type = "text" 
+                        id = vel 
+                        value = '2500'
+                        />   
+            </p>    
+            
 
-                        />
+            <p id="demo"></p>
 
-                         
-            </p>           
+                     
         </fieldset>
+
+
+
+        <input id = "submit" 
+               type = "button" 
+               value = "Send Coordinates" 
+               onclick = "sendJSON()" 
+               />
+    
     </form>
+
+    <script document.getElementById("demo") = demo();></script> 
 
 </body>
 
 
 
 
-</html>
+</html> 
+
+
+
+<!-- 
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.2/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.2/addons/p5.dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.2/addons/p5.sound.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+    <script src="index.js"></script>
+  </body>
+</html> -->
