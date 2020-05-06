@@ -25,7 +25,9 @@
 
  // define the steps per revolution for X,Y and Z motors 
  #define X_SPR 1700
- #define YZ_SPR 400 
+ #define YZ_SPR 200 
+ #define YZ_Micro 16 
+ #define X_Micro 1 
 
 
  // define all interrupt pins for bump switches
@@ -389,9 +391,9 @@ void setup() {
   stepperY.setMaxSpeed(MaxSpeed/4); 
   stepperZ.setMaxSpeed(MaxSpeed/4); 
 
-  stepperX.setAcceleration(20); 
-  stepperY.setAcceleration(20);
-  stepperZ.setAcceleration(20);
+  stepperX.setAcceleration(40); 
+  stepperY.setAcceleration(40);
+  stepperZ.setAcceleration(40);
 
 
   
@@ -424,7 +426,7 @@ void setup() {
 }
 
 
-int mmToSteps(double mm, int steps_per_revolution, double belt_radius) {
+int mmToSteps(double mm, int steps_per_revolution, double belt_radius, int micro) {
 
         // Serial.print("mm = ");
         // Serial.println(mm); 
@@ -435,7 +437,7 @@ int mmToSteps(double mm, int steps_per_revolution, double belt_radius) {
         // Serial.print("Radius = "); 
         // Serial.println(belt_radius); 
   
-        return (int) round(mm/(2*3.14*belt_radius) * steps_per_revolution);
+        return (int) round((mm*micro)/(2*3.14*belt_radius) * steps_per_revolution);
     }
 
 
@@ -599,11 +601,15 @@ void loop() {
     GetData();   
 
 // Convert Number of mm to steps for the GoTo Function
-  int xsteps = mmToSteps(X_Location, X_SPR, Spool_Rad_X );
-  int ysteps = mmToSteps(Y_Location, YZ_SPR, Spool_Rad_YZ );
-  int zsteps = mmToSteps(Z_Location, YZ_SPR, Spool_Rad_YZ );
+  int xsteps = mmToSteps(X_Location, X_SPR, Spool_Rad_X, X_Micro );
+  int ysteps = mmToSteps(Y_Location, YZ_SPR, Spool_Rad_YZ, YZ_Micro );
+  int zsteps = mmToSteps(Z_Location, YZ_SPR, Spool_Rad_YZ, YZ_Micro );
  
   GoTo(xsteps, ysteps, zsteps); 
+
+Serial.print("String = ");
+Serial.println(JsonStr); 
+
 
   // if rail is not calibrated then calibrate it 
 //  if(!calibrated)
