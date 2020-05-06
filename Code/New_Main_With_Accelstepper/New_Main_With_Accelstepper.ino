@@ -26,8 +26,11 @@
  // define the steps per revolution for X,Y and Z motors 
  #define X_SPR 1700
  #define YZ_SPR 200 
- #define YZ_Micro 16 
- #define X_Micro 1 
+
+ // Use these variables to define your microstep values for the motors 
+ // When there is nothing connected to the big easy driver pins the driver defaults to 1/16 step 
+ #define YZ_Micro 16 // 1/16 step 
+ #define X_Micro 1  // full step 
 
 
  // define all interrupt pins for bump switches
