@@ -100,10 +100,10 @@ void setup() {
   pinMode(D_Pin, INPUT_PULLUP); 
   pinMode(E_Pin, INPUT_PULLUP); 
   pinMode(F_Pin, INPUT_PULLUP);
-    pinMode(G_Pin, INPUT_PULLUP); 
+  pinMode(G_Pin, INPUT_PULLUP); 
   pinMode(H_Pin, INPUT_PULLUP);
 
-  Loom.InterruptManager().register_ISR(F_Pin, F_ISR, FALLING , ISR_Type::IMMEDIATE);
+  //Loom.InterruptManager().register_ISR(F_Pin, F_ISR, FALLING , ISR_Type::IMMEDIATE);
 
 
 
@@ -115,16 +115,15 @@ void setup() {
   Loom.InterruptManager().register_ISR(C_Pin, C_ISR, FALLING , ISR_Type::IMMEDIATE);
 
   Loom.InterruptManager().register_ISR(D_Pin, D_ISR, FALLING  , ISR_Type::IMMEDIATE);
-//
-  Loom.InterruptManager().register_ISR(E_Pin, E_ISR, FALLING , ISR_Type::IMMEDIATE);
+//Loom.InterruptManager().register_ISR(E_Pin, E_ISR, FALLING , ISR_Type::IMMEDIATE);
 
-//  attachInterrupt(digitalPinToInterrupt(E_Pin), E_ISR, FALLING);
-//
-//  attachInterrupt(digitalPinToInterrupt(F_Pin), F_ISR, FALLING);
-//
-//  attachInterrupt(digitalPinToInterrupt(G_Pin), G_ISR, FALLING);
-//
-//  attachInterrupt(digitalPinToInterrupt(H_Pin), H_ISR, FALLING);
+ attachInterrupt(digitalPinToInterrupt(E_Pin), E_ISR, FALLING);
+
+ attachInterrupt(digitalPinToInterrupt(F_Pin), F_ISR, FALLING);
+
+ attachInterrupt(digitalPinToInterrupt(G_Pin), G_ISR, FALLING);
+
+ attachInterrupt(digitalPinToInterrupt(H_Pin), H_ISR, FALLING);
 
 
 
