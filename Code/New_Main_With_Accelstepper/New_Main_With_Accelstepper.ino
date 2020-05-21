@@ -25,11 +25,11 @@
 
  // define the steps per revolution for X,Y and Z motors 
  #define X_SPR 1700
- #define YZ_SPR 200 
+ #define YZ_SPR 400 
 
  // Use these variables to define your microstep values for the motors 
  // When there is nothing connected to the big easy driver pins the driver defaults to 1/16 step 
- #define YZ_Micro 16 // 1/16 step 
+ #define YZ_Micro 1 // 1/16 step 
  #define X_Micro 1  // full step 
 
 
@@ -138,9 +138,9 @@ void onestep(int dir, int stepPin, int dirPin) {
    }
 
    digitalWrite(stepPin, HIGH);
-   delayMicroseconds(30);
+   delayMicroseconds(60);
    digitalWrite(stepPin, LOW);
-   delayMicroseconds(30); 
+   delayMicroseconds(60); 
 }
 
 // Functions for Stepper Motor Stepping 
@@ -195,12 +195,39 @@ void backwardZ() {
    AccelStepper stepperX(forwardX, backwardX);
    AccelStepper stepperY(forwardY, backwardY);
    AccelStepper stepperZ(forwardZ, backwardZ); 
+   //AccelStepper stepperY(1,STEPY, DIRY);
+   //AccelStepper stepperZ(1, STEPZ, DIRZ); 
 
 
  // put interrupt functions here 
 
- void X0A_ISR()
+/* 
+void Interrupt(Accelstepper stepper, bool flag, int count, int pos, string name)
+{
+  stepper.stop(); 
+
+  delay(5); 
+
+  count++; 
+
+  if(count == 1)
+  {
+    pos = stepper.currentPosition(); 
+    flag = true; 
+    Serial.print("Stepper ");
+    Serial.print(name);
+    Serial.print("has hit a bumper at position "); 
+    Serial. println(pos)
+  }
+  else
+  count = 0; 
+}
+ */
+
+  void X0A_ISR()
  {
+   stepperX.stop(); 
+
    delay(5); 
    XA0_Count++; 
 
@@ -219,6 +246,8 @@ void backwardZ() {
 
  void Y0_ISR()
  {
+   stepperY.stop(); 
+
    delay(5); 
    Y0_Count++; 
 
@@ -237,6 +266,8 @@ void backwardZ() {
 
  void X0B_ISR()
  {
+   stepperX.stop(); 
+
    delay(5); 
    XB0_Count++; 
 
@@ -256,6 +287,8 @@ void backwardZ() {
 // ISR for Z0 
 void Z0_ISR()
 {
+  stepperZ.stop(); 
+
   delay(5);   // debounce 
   Z0_Count++;   // count to avoid double triggering 
 
@@ -275,6 +308,8 @@ void Z0_ISR()
 
 void XMaxA_ISR()
 {
+  stepperX.stop(); 
+
   delay(5); 
   XAMAX_Count++; 
 
@@ -294,6 +329,8 @@ void XMaxA_ISR()
 
 void YMax_ISR()
 {
+  stepperY.stop(); 
+
   delay(5); 
   YMAX_Count++; 
 
@@ -313,6 +350,8 @@ void YMax_ISR()
 
 void XMaxB_ISR()
 {
+  stepperX.stop(); 
+  
   delay(5); 
   XBMAX_Count++; 
 
@@ -332,6 +371,8 @@ void XMaxB_ISR()
 
 void ZMax_ISR()
 {
+  stepperZ.stop(); 
+
   delay(5);   // debounce 
   ZMAX_Count++;   // count to avoid double triggering 
 
@@ -346,7 +387,7 @@ void ZMax_ISR()
   else                                  // reset counter when interrupt is triggered on release of switch 
   ZMAX_Count = 0;  
 }
-
+ 
 
 
 void setup() {
@@ -394,37 +435,38 @@ void setup() {
   stepperY.setMaxSpeed(MaxSpeed/4); 
   stepperZ.setMaxSpeed(MaxSpeed/4); 
 
+  // Set the Acceleration for the stepper motors
   stepperX.setAcceleration(40); 
-  stepperY.setAcceleration(40);
+  stepperY.setAcceleration(80);
   stepperZ.setAcceleration(40);
 
 
   
-  // initialize all interrupts for Bump Switches 
+ //  initialize all interrupts for Bump Switches 
 
-//  // X0A Interrupt 
-//  Loom.InterruptManager().register_ISR(X0ABump, X0A_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // X0B Interrupt 
-//  Loom.InterruptManager().register_ISR(X0BBump, X0B_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // XMaxA Interrupt 
-// Loom.InterruptManager().register_ISR(XMaxABump, XMaxA_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // XMaxB Interrupt 
-//  Loom.InterruptManager().register_ISR(XMaxBBump, XMaxB_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // Y0 Interrupt 
-//  Loom.InterruptManager().register_ISR(Y0Bump, Y0_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // YMax Interrupt 
-//  Loom.InterruptManager().register_ISR(YMaxBump, YMax_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // Z0 Interrupt 
-//  Loom.InterruptManager().register_ISR(Z0Bump, Z0_ISR, FALLING, ISR_Type::IMMEDIATE);
-//
-//  // ZMax Interrupt 
-//  Loom.InterruptManager().register_ISR(ZMaxBump, ZMax_ISR, FALLING, ISR_Type::IMMEDIATE);
+ // X0A Interrupt 
+ Loom.InterruptManager().register_ISR(X0ABump, X0A_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // X0B Interrupt 
+ Loom.InterruptManager().register_ISR(X0BBump, X0B_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // XMaxA Interrupt 
+Loom.InterruptManager().register_ISR(XMaxABump, XMaxA_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // XMaxB Interrupt 
+ Loom.InterruptManager().register_ISR(XMaxBBump, XMaxB_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // Y0 Interrupt 
+ Loom.InterruptManager().register_ISR(Y0Bump, Y0_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // YMax Interrupt 
+ Loom.InterruptManager().register_ISR(YMaxBump, YMax_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // Z0 Interrupt 
+ Loom.InterruptManager().register_ISR(Z0Bump, Z0_ISR, FALLING, ISR_Type::IMMEDIATE);
+
+ // ZMax Interrupt 
+ Loom.InterruptManager().register_ISR(ZMaxBump, ZMax_ISR, FALLING, ISR_Type::IMMEDIATE);
 
 }
 
