@@ -4,24 +4,24 @@
  // Date: 1/21/2020
  // Description: Code to Drive the HyperRail, Interface with Processing GUI, and Receive data from eGreenhouse
 
- //#include <Loom.h> 
+ #include <Loom.h> 
  #include <ArduinoJson.h>
  #include <AccelStepper.h>
 
- //const char* json_config = 
- // "{\"general\":{\"device_name\":\"Device\",\"family\":\"Loom\",\"instance_num\":1,\"family_num\":0},\"components\":[{\"name\":\"Loom_DS3231\",\"params\":[11,true]},{\"name\":\"Loom_Interrupt_Manager\",\"params\":[0]},{\"name\":\"Loom_Sleep_Manager\",\"params\":[true,false,1]}]}"
- //;
- //
- //// Set enabled modules
- //LoomFactory<
- //  Enable::Internet::Disabled,
- //  Enable::Sensors::Enabled,
- //  Enable::Radios::Disabled,
- //  Enable::Actuators::Disabled,
- //  Enable::Max::Disabled
- //> ModuleFactory{};
- //
- //LoomManager Loom{ &ModuleFactory };
+ const char* json_config = 
+ "{\"general\":{\"device_name\":\"Device\",\"family\":\"Loom\",\"instance_num\":1,\"family_num\":0},\"components\":[{\"name\":\"Loom_DS3231\",\"params\":[11,true]},{\"name\":\"Loom_Interrupt_Manager\",\"params\":[0]},{\"name\":\"Loom_Sleep_Manager\",\"params\":[true,false,1]}]}"
+ ;
+ 
+ // Set enabled modules
+ LoomFactory<
+  Enable::Internet::Disabled,
+  Enable::Sensors::Enabled,
+  Enable::Radios::Disabled,
+  Enable::Actuators::Disabled,
+  Enable::Max::Disabled
+ > ModuleFactory{};
+ 
+ LoomManager Loom{ &ModuleFactory };
 
  // define the steps per revolution for X,Y and Z motors 
  #define X_SPR 1700
@@ -195,34 +195,9 @@ void backwardZ() {
    AccelStepper stepperX(forwardX, backwardX);
    AccelStepper stepperY(forwardY, backwardY);
    AccelStepper stepperZ(forwardZ, backwardZ); 
-   //AccelStepper stepperY(1,STEPY, DIRY);
-   //AccelStepper stepperZ(1, STEPZ, DIRZ); 
 
 
  // put interrupt functions here 
-
-/* 
-void Interrupt(Accelstepper stepper, bool flag, int count, int pos, string name)
-{
-  stepper.stop(); 
-
-  delay(5); 
-
-  count++; 
-
-  if(count == 1)
-  {
-    pos = stepper.currentPosition(); 
-    flag = true; 
-    Serial.print("Stepper ");
-    Serial.print(name);
-    Serial.print("has hit a bumper at position "); 
-    Serial. println(pos)
-  }
-  else
-  count = 0; 
-}
- */
 
   void X0A_ISR()
  {
