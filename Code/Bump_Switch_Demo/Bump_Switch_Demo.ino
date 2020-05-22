@@ -39,48 +39,56 @@ bool H_Flag = false;
 
 void swA_ISR()
 {
+  delay(10); 
   if(swA_Flag == false)
   swA_Flag = true; 
 }
 
 void swB_ISR()
 {
+  delay(10); 
   if(swB_Flag == false)
   swB_Flag = true; 
 }
 
 void C_ISR()
 {
+  delay(10); 
   if(C_Flag == false)
   C_Flag = true; 
 }
 
 void D_ISR()
 {
+  delay(10); 
   if(D_Flag == false)
   D_Flag = true; 
 }
 
 void E_ISR()
 {
+  delay(10); 
   if(E_Flag == false)
   E_Flag = true; 
 }
 
 void F_ISR()
 {
+  delay(10); 
   if(F_Flag == false)
   F_Flag = true; 
 }
 
 void G_ISR()
 {
+  delay(10); 
   if(G_Flag == false)
   G_Flag = true; 
 }
 
 void H_ISR()
 {
+  delay(10); 
   if(H_Flag == false)
   H_Flag = true; 
 }
