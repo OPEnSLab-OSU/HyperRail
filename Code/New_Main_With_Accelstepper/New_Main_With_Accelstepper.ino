@@ -65,6 +65,11 @@
  #define FORWARD 0
  #define BACKWARD 1
 
+
+ int xLoopPeriod = 500; 
+ int yLoopPeriod = 500; 
+ int zLoopPeriod = 500; 
+
  String JsonStr;   // Define a string object to receive JSON data from Processing GUI
 
 
@@ -529,6 +534,15 @@ void GoTo(int x, int y, int z)
 }
 
 
+void Loop(int xperiod, int yperiod, int zperiod)
+{
+  GoTo(xperiod, yperiod, zperiod); 
+  xperiod = -xperiod; 
+  yperiod = -yperiod; 
+  zperiod = -zperiod; 
+}
+
+
 // Function to calibrate all axis and set MAX and 
 // 0 points for all axis individually 
 void Calibrate()
@@ -629,6 +643,9 @@ void loop() {
 
 Serial.print("String = ");
 Serial.println(JsonStr); 
+
+// Uncomment this line to run the HyperRail in a loop for a predefined period
+// Loop(xLoopPeriod, yLoopPeriod, zLoopPeriod); 
 
 
   // if rail is not calibrated then calibrate it 
