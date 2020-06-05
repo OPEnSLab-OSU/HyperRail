@@ -77,10 +77,8 @@ void H_ISR()
 
 
 void setup() {
-  // put your setup code here, to run once:
 
-  Loom.begin_serial(true);
-  Loom.parse_config(json_config);
+  Serial.begin(9600); 
 
   pinMode(swA_Pin, INPUT_PULLUP); 
   pinMode(swB_Pin, INPUT_PULLUP); 
