@@ -1,23 +1,3 @@
-
-#include <Loom.h>
-
-// Include configuration
-const char* json_config = 
- "{\"general\":{\"device_name\":\"Device\",\"family\":\"Loom\",\"instance_num\":1,\"family_num\":0},\"components\":[{\"name\":\"DS3231\",\"params\":[11,true]},{\"name\":\"Interrupt_Manager\",\"params\":[0]},{\"name\":\"Sleep_Manager\",\"params\":[true,false,1]}]}"
-
-;
-
-// Set enabled modules
-LoomFactory<
-  Enable::Internet::Disabled,
-  Enable::Sensors::Enabled,
-  Enable::Radios::Disabled,
-  Enable::Actuators::Disabled,
-  Enable::Max::Disabled
-> ModuleFactory{};
-
-LoomManager Loom{ &ModuleFactory };
-
 #define swA_Pin 1
 #define swB_Pin 14
 #define C_Pin 0
@@ -111,19 +91,13 @@ void setup() {
   pinMode(G_Pin, INPUT_PULLUP); 
   pinMode(H_Pin, INPUT_PULLUP);
 
-  //Loom.InterruptManager().register_ISR(F_Pin, F_ISR, FALLING , ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(swA_Pin), swA_ISR, FALLING);
 
+ attachInterrupt(digitalPinToInterrupt(swB_Pin), swB_ISR, FALLING);
 
+ attachInterrupt(digitalPinToInterrupt(C_Pin), C_ISR, FALLING);
 
-  Loom.InterruptManager().register_ISR(swA_Pin, swA_ISR, FALLING , ISR_Type::IMMEDIATE);
-
-
-  Loom.InterruptManager().register_ISR(swB_Pin, swB_ISR, FALLING, ISR_Type::IMMEDIATE);
-
-  Loom.InterruptManager().register_ISR(C_Pin, C_ISR, FALLING , ISR_Type::IMMEDIATE);
-
-  Loom.InterruptManager().register_ISR(D_Pin, D_ISR, FALLING  , ISR_Type::IMMEDIATE);
-//Loom.InterruptManager().register_ISR(E_Pin, E_ISR, FALLING , ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(D_Pin), D_ISR, FALLING);
 
  attachInterrupt(digitalPinToInterrupt(E_Pin), E_ISR, FALLING);
 
@@ -132,9 +106,6 @@ void setup() {
  attachInterrupt(digitalPinToInterrupt(G_Pin), G_ISR, FALLING);
 
  attachInterrupt(digitalPinToInterrupt(H_Pin), H_ISR, FALLING);
-
-
-
 
 }
 
