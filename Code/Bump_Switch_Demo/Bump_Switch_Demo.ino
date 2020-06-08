@@ -1,5 +1,5 @@
-#define swA_Pin 1
-#define swB_Pin 14
+#define A_Pin 1
+#define B_Pin 14
 #define C_Pin 0
 #define D_Pin 6
 #define E_Pin 18
@@ -7,8 +7,8 @@
 #define G_Pin 21
 #define H_Pin 15
 
-bool swA_Flag = false; 
-bool swB_Flag = false; 
+bool A_Flag = false; 
+bool B_Flag = false; 
 bool C_Flag = false; 
 bool D_Flag = false; 
 bool E_Flag = false; 
@@ -17,58 +17,50 @@ bool G_Flag = false;
 bool H_Flag = false; 
 
 
-void swA_ISR()
+void A_ISR()
 {
-  delay(10); 
-  if(swA_Flag == false)
-  swA_Flag = true; 
+  if(A_Flag == false)
+  A_Flag = true; 
 }
 
-void swB_ISR()
+void B_ISR()
 {
-  delay(10); 
-  if(swB_Flag == false)
-  swB_Flag = true; 
+ if(B_Flag == false)
+  B_Flag = true; 
 }
 
 void C_ISR()
 {
-  delay(10); 
   if(C_Flag == false)
   C_Flag = true; 
 }
 
 void D_ISR()
 {
-  delay(10); 
   if(D_Flag == false)
   D_Flag = true; 
 }
 
 void E_ISR()
 {
-  delay(10); 
   if(E_Flag == false)
   E_Flag = true; 
 }
 
 void F_ISR()
 {
-  delay(10); 
   if(F_Flag == false)
   F_Flag = true; 
 }
 
 void G_ISR()
 {
-  delay(10); 
   if(G_Flag == false)
   G_Flag = true; 
 }
 
 void H_ISR()
 {
-  delay(10); 
   if(H_Flag == false)
   H_Flag = true; 
 }
@@ -80,8 +72,8 @@ void setup() {
 
   Serial.begin(9600); 
 
-  pinMode(swA_Pin, INPUT_PULLUP); 
-  pinMode(swB_Pin, INPUT_PULLUP); 
+  pinMode(A_Pin, INPUT_PULLUP); 
+  pinMode(B_Pin, INPUT_PULLUP); 
   pinMode(C_Pin, INPUT_PULLUP); 
   pinMode(D_Pin, INPUT_PULLUP); 
   pinMode(E_Pin, INPUT_PULLUP); 
@@ -89,9 +81,9 @@ void setup() {
   pinMode(G_Pin, INPUT_PULLUP); 
   pinMode(H_Pin, INPUT_PULLUP);
 
- attachInterrupt(digitalPinToInterrupt(swA_Pin), swA_ISR, FALLING);
+ attachInterrupt(digitalPinToInterrupt(A_Pin), A_ISR, FALLING);
 
- attachInterrupt(digitalPinToInterrupt(swB_Pin), swB_ISR, FALLING);
+ attachInterrupt(digitalPinToInterrupt(B_Pin), B_ISR, FALLING);
 
  attachInterrupt(digitalPinToInterrupt(C_Pin), C_ISR, FALLING);
 
@@ -110,59 +102,80 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  if(swA_Flag == true) 
+  if(A_Flag == true) 
   {
     delay(5); 
+    
+    if(digitalRead(A_Pin) == LOW)
     Serial.println("Switch A has been Pressed"); 
-    swA_Flag = false; 
+    
+    A_Flag = false; 
   }
 
-  if(swB_Flag == true) 
+  if(B_Flag == true) 
   {
     delay(5);
+
+    if(digitalRead(B_Pin) == LOW)
     Serial.println("Switch B has been Pressed"); 
-    swB_Flag = false; 
+    
+    B_Flag = false; 
   }
 
   if(C_Flag == true) 
   {
     delay(5);
+
+    if(digitalRead(C_Pin) == LOW)
     Serial.println("Switch C has been Pressed"); 
+    
     C_Flag = false; 
   }
 
   if(D_Flag == true) 
   {
     delay(5);
+
+    if(digitalRead(D_Pin) == LOW)
     Serial.println("Switch D has been Pressed"); 
+    
     D_Flag = false; 
   }
 
   if(E_Flag == true) 
   {
-    delay(5);
+    delay(5);    
+    
+    if(digitalRead(E_Pin) == LOW)
     Serial.println("Switch E has been Pressed"); 
+    
     E_Flag = false; 
   }
 
   if(F_Flag == true) 
   {
-    delay(5);
+    delay(5);    
+    if(digitalRead(F_Pin) == LOW)
     Serial.println("Switch F has been Pressed"); 
+    
     F_Flag = false; 
   }
 
     if(G_Flag == true) 
   {
-    delay(5);
+    delay(5);   
+    if(digitalRead(G_Pin) == LOW)
     Serial.println("Switch G has been Pressed"); 
+    
     G_Flag = false; 
   }
 
     if(H_Flag == true) 
   {
-    delay(5);
+    delay(5);    
+    if(digitalRead(H_Pin) == LOW)
     Serial.println("Switch H has been Pressed"); 
+    
     H_Flag = false; 
   }
 
