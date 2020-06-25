@@ -4,24 +4,8 @@
  // Date: 1/21/2020
  // Description: Code to Drive the HyperRail, Interface with Processing GUI, and Receive data from eGreenhouse
 
- #include <Loom.h> 
  #include <ArduinoJson.h>
  #include <AccelStepper.h>
-
- const char* json_config = 
- "{\"general\":{\"device_name\":\"Device\",\"family\":\"Loom\",\"instance_num\":1,\"family_num\":0},\"components\":[{\"name\":\"Loom_DS3231\",\"params\":[11,true]},{\"name\":\"Loom_Interrupt_Manager\",\"params\":[0]},{\"name\":\"Loom_Sleep_Manager\",\"params\":[true,false,1]}]}"
- ;
- 
- // Set enabled modules
- LoomFactory<
-  Enable::Internet::Disabled,
-  Enable::Sensors::Enabled,
-  Enable::Radios::Disabled,
-  Enable::Actuators::Disabled,
-  Enable::Max::Disabled
- > ModuleFactory{};
- 
- LoomManager Loom{ &ModuleFactory };
 
  // define the steps per revolution for X,Y and Z motors 
  #define X_SPR 1700
@@ -34,17 +18,17 @@
 
 
  // define all interrupt pins for bump switches
- #define X0ABump 1
- #define X0BBump 14
+ int X0ABump = 1;
+ int X0BBump = 14;
 
- #define XMaxABump 0
- #define XMaxBBump 6
+ int XMaxABump = 0;
+ int XMaxBBump = 6;
 
- #define Y0Bump A4
- #define YMaxBump 20
+ int Y0Bump = 18;
+ int YMaxBump = 20;
 
- #define Z0Bump 21
- #define ZMaxBump 15
+ int Z0Bump = 21;
+ int ZMaxBump = 15;
 
  // Define Motor Pins X A,B
  #define STEPXA 10
@@ -65,8 +49,11 @@
  #define FORWARD 0
  #define BACKWARD 1
 
+ bool xMove = true; 
+ bool yMove = true; 
+ bool zMove = true; 
 
- int xLoopPeriod = 500; 
+ int xLoopPeriod = 10000; 
  int yLoopPeriod = 500; 
  int zLoopPeriod = 500; 
 
@@ -86,24 +73,24 @@
  int Spool_Rad_YZ = 32; 
 
  // Position of the back end of the rail set by the calibration function
- int XA0_pos; 
- int XB0_pos; 
+ int X0A_pos; 
+ int X0B_pos; 
  int Y0_pos; 
  int Z0_pos; 
  int X0_pos; 
 
  // Position of the front end of the rail set by the calibration function
- int XAMAX_pos; 
- int XBMAX_pos; 
- int YMAX_pos; 
- int ZMAX_pos; 
- int XMAX_pos;
+ int XmaxA_pos; 
+ int XmaxB_pos; 
+ int Ymax_pos; 
+ int Zmax_pos; 
+ int Xmax_pos;
 
  // Make flags for the interrupts 
- bool XA0Flag = false; 
- bool XAMAXFlag = false; 
- bool XB0Flag = false; 
- bool XBMAXFlag = false; 
+ volatile int XA0Flag = 0; 
+ bool XmaxAFlag = false; 
+ bool X0BFlag = false; 
+ bool XmaxBFlag = false; 
  bool Y0Flag = false; 
  bool YMAXFlag = false; 
  bool Z0Flag = false; 
@@ -206,166 +193,56 @@ void backwardZ() {
 
   void X0A_ISR()
  {
-   stepperX.stop(); 
-
-   delay(5); 
-   XA0_Count++; 
-
-   if(XA0_Count == 1)
-   {
-   XA0_pos = stepperX.currentPosition(); 
-   XA0Flag = true; 
-   Serial.println("XA0 Flag"); 
-   Serial.println(XA0_pos);
-   }
-   else
-   XA0_Count = 0; 
+   Serial.println("A0");
+   XA0Flag = 1; 
+   delay(10);
  }
 
 
 
  void Y0_ISR()
  {
-   stepperY.stop(); 
-
-   delay(5); 
-   Y0_Count++; 
-
-   if(Y0_Count == 1)
-   {
-   Y0_pos = stepperY.currentPosition(); 
-   //stepperY.currentPosition(); 
-   Y0Flag = true; 
-   Serial.println("Y0 Flag"); 
-   Serial.println(Y0_pos);
-   }
-  else
-   Y0_Count = 0; 
-  
+   Y0Flag = true;
  }
 
  void X0B_ISR()
  {
-   stepperX.stop(); 
-
-   delay(5); 
-   XB0_Count++; 
-
-   if(XB0_Count == 1)
-   {
-   XB0_pos = stepperX.currentPosition(); 
-   //stepperXB.currentPosition(); 
-   XB0Flag = true; 
-   Serial.println("XB0 Flag"); 
-   Serial.println(XB0_pos);
-   }
-   else
-   XB0_Count = 0; 
+   X0BFlag = true; 
  }
 
 
 // ISR for Z0 
 void Z0_ISR()
 {
-  stepperZ.stop(); 
-
-  delay(5);   // debounce 
-  Z0_Count++;   // count to avoid double triggering 
-
-  if(Z0_Count == 1) // if pressed 
-  {
-  Z0_pos = stepperZ.currentPosition(); 
-  // stepperZ.currentPosition();  // set current position 
-  Z0Flag = true;                        // set flag 
-  Serial.println("Z0 Flag");            // print things for testing 
-  Serial.println(Z0_pos);
-  }
-  else                                  // reset counter when interrupt is triggered on release of switch 
-  Z0_Count = 0;  
+  Z0Flag = true; 
 }
 
 
 
 void XMaxA_ISR()
 {
-  stepperX.stop(); 
-
-  delay(5); 
-  XAMAX_Count++; 
-
-  if(XAMAX_Count == 1)
-  {
-  XAMAX_pos = stepperX.currentPosition(); 
-  //stepperXA.currentPosition(); 
-  XAMAXFlag = true; 
-  Serial.println("XAMAX Flag"); 
-  Serial.println(XAMAX_pos);
-  }
-  else
-  XAMAX_Count = 0; 
+  XmaxAFlag = true; 
 }
 
 
 
 void YMax_ISR()
 {
-  stepperY.stop(); 
-
-  delay(5); 
-  YMAX_Count++; 
-
-  if(YMAX_Count == 1)
-  {
-  YMAX_pos = stepperY.currentPosition(); 
-  //stepperY.currentPosition(); 
   YMAXFlag = true; 
-  Serial.println("YMAX Flag"); 
-  Serial.println(YMAX_pos);
-  }
-  else
-  YMAX_Count = 0; 
 }
 
 
 
 void XMaxB_ISR()
 {
-  stepperX.stop(); 
-  
-  delay(5); 
-  XBMAX_Count++; 
-
-  if(XBMAX_Count == 1)
-  {
-  XBMAX_pos = stepperX.currentPosition(); 
-  //stepperXB.currentPosition(); 
-  XBMAXFlag = true; 
-  Serial.println("XBMAX Flag"); 
-  Serial.println(XBMAX_pos);
-  }
-  else
-  XBMAX_Count = 0; 
+  XmaxBFlag = true; 
 }
 
 
 
 void ZMax_ISR()
 {
-  stepperZ.stop(); 
-
-  delay(5);   // debounce 
-  ZMAX_Count++;   // count to avoid double triggering 
-
-  if(ZMAX_Count == 1) // if pressed 
-  {
-  ZMAX_pos = stepperZ.currentPosition(); 
-  //stepperZ.currentPosition();  // set current position 
-  ZMAXFlag = true;                        // set flag 
-  Serial.println("ZMAX Flag");            // print things for testing 
-  Serial.println(ZMAX_pos);
-  }
-  else                                  // reset counter when interrupt is triggered on release of switch 
-  ZMAX_Count = 0;  
+  ZMAXFlag = true; 
 }
  
 
@@ -379,20 +256,20 @@ void setup() {
   // set up interrupts and pins 
 
   // XA Bump Switches 
-  pinMode(X0ABump, INPUT); 
-  pinMode(XMaxABump, INPUT); 
+  pinMode(X0ABump, INPUT_PULLUP); 
+  pinMode(XMaxABump, INPUT_PULLUP); 
 
   // XB Bump Switches 
-  pinMode(X0BBump, INPUT); 
-  pinMode(XMaxBBump, INPUT); 
+  pinMode(X0BBump, INPUT_PULLUP); 
+  pinMode(XMaxBBump, INPUT_PULLUP); 
 
   // Y axis Bump Switches 
-  pinMode(Y0Bump, INPUT); 
-  pinMode(YMaxBump, INPUT); 
+  pinMode(Y0Bump, INPUT_PULLUP); 
+  pinMode(YMaxBump, INPUT_PULLUP); 
 
   // Z Axis Bump Switches 
-  pinMode(Z0Bump, INPUT); 
-  pinMode(ZMaxBump, INPUT);  
+  pinMode(Z0Bump, INPUT_PULLUP); 
+  pinMode(ZMaxBump, INPUT_PULLUP);  
 
   // XA Motor Control Pins
   pinMode(STEPXA, OUTPUT); 
@@ -424,29 +301,22 @@ void setup() {
   
  //  initialize all interrupts for Bump Switches 
 
- // X0A Interrupt 
- Loom.InterruptManager().register_ISR(X0ABump, X0A_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(X0ABump), X0A_ISR, FALLING);
 
- // X0B Interrupt 
- Loom.InterruptManager().register_ISR(X0BBump, X0B_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(X0BBump), X0B_ISR, FALLING);
 
- // XMaxA Interrupt 
-Loom.InterruptManager().register_ISR(XMaxABump, XMaxA_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(XMaxABump), XMaxA_ISR, FALLING);
 
- // XMaxB Interrupt 
- Loom.InterruptManager().register_ISR(XMaxBBump, XMaxB_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(XMaxBBump), XMaxB_ISR, FALLING);
 
- // Y0 Interrupt 
- Loom.InterruptManager().register_ISR(Y0Bump, Y0_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(Y0Bump), Y0_ISR, FALLING);
 
- // YMax Interrupt 
- Loom.InterruptManager().register_ISR(YMaxBump, YMax_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(YMaxBump), YMax_ISR, FALLING);
 
- // Z0 Interrupt 
- Loom.InterruptManager().register_ISR(Z0Bump, Z0_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(Z0Bump), Z0_ISR, FALLING);
 
- // ZMax Interrupt 
- Loom.InterruptManager().register_ISR(ZMaxBump, ZMax_ISR, FALLING, ISR_Type::IMMEDIATE);
+ attachInterrupt(digitalPinToInterrupt(ZMaxBump), ZMax_ISR, FALLING);
+ 
 
 }
 
@@ -517,18 +387,28 @@ void GoTo(int x, int y, int z)
 {
 
  // Use MoveTo Function to set desired position 
+  stepperX.moveTo(x); 
+  stepperY.moveTo(y);
+  stepperZ.moveTo(z);
 
- stepperX.moveTo(x); 
- stepperY.moveTo(y);
- stepperZ.moveTo(z);
+  int i = 1, j = 1, k = 1; 
+  while(i == 1 or j == 1 or k == 1)
+  {
+    if(XA0Flag or XmaxAFlag or X0BFlag or XmaxBFlag or Y0Flag or YMAXFlag or Z0Flag or ZMAXFlag)
+    {
+      //Serial.println("Break");
+      break;
+    }
 
- int i = 1, j = 1, k = 1; 
- while(i == 1 or j == 1 or k == 1)
- {
-   i =  stepperX.run(); 
-   j =  stepperY.run();
-   k =  stepperZ.run();
- }
+    if(xMove)
+    i =  stepperX.run(); 
+
+    if(yMove)
+    j =  stepperY.run();
+
+    if(zMove)
+    k =  stepperZ.run();
+  }
 
   return; 
 }
@@ -536,10 +416,18 @@ void GoTo(int x, int y, int z)
 
 void Loop(int xperiod, int yperiod, int zperiod)
 {
+  
+  if(XA0Flag or XmaxAFlag or X0BFlag or XmaxBFlag or Y0Flag or YMAXFlag or Z0Flag or ZMAXFlag)
+  {
+   //Serial.println("return");
+   return;
+  }
   GoTo(xperiod, yperiod, zperiod); 
+
   xperiod = -xperiod; 
   yperiod = -yperiod; 
   zperiod = -zperiod; 
+  
 }
 
 
@@ -548,7 +436,7 @@ void Loop(int xperiod, int yperiod, int zperiod)
 void Calibrate()
 {
   
-    while(!XA0Flag or !XAMAXFlag or !XB0Flag or !XBMAXFlag or !Y0Flag or !YMAXFlag or !Z0Flag or !ZMAXFlag)
+    while(!XA0Flag or !XmaxAFlag or !X0BFlag or !XmaxBFlag or !Y0Flag or !YMAXFlag or !Z0Flag or !ZMAXFlag)
     {
 
       // XA 0 point calibration 
@@ -559,13 +447,13 @@ void Calibrate()
       }
 
       // XB 0 point calibration 
-      if(!XB0Flag)
+      if(!X0BFlag)
       {
         stepperX.setSpeed(-XCalSpeed); 
         stepperX.runSpeed(); 
       }
 
-      // Y 0 point calibration 
+     // Y 0 point calibration 
       if(!Y0Flag)
       {
         stepperY.setSpeed(-YZCalSpeed);
@@ -581,14 +469,14 @@ void Calibrate()
       }
 
      // XA Max Point calibration 
-      if(XA0Flag and !XAMAXFlag)
+      if(XA0Flag and !XmaxAFlag)
       {
         stepperX.setSpeed(XCalSpeed); 
         stepperX.runSpeed();
       }
 
       // XB Max Point Calibration 
-      if(XB0Flag and !XBMAXFlag)
+      if(X0BFlag and !XmaxBFlag)
       {
         stepperX.setSpeed(XCalSpeed); 
         stepperX.runSpeed();
@@ -611,10 +499,10 @@ void Calibrate()
 
     }
 
-    XA0Flag = false; 
-    XB0Flag = false; 
-    XAMAXFlag = false; 
-    XBMAXFlag = false; 
+    XA0Flag = 1; 
+    X0BFlag = false; 
+    XmaxAFlag = false; 
+    XmaxBFlag = false; 
     Y0Flag = false; 
     YMAXFlag = false; 
     Z0Flag = false; 
@@ -623,6 +511,30 @@ void Calibrate()
     // set calibration flag 
     calibrated = true; 
    
+}
+
+
+// Function to Check the validity of the interrupts and act accordingly
+int checkInts(volatile int flag, int bump, int pos, AccelStepper stepper, bool move)
+{
+  if(flag == true)
+  {
+    delay(5); 
+
+    if(digitalRead(bump) == LOW)
+    {
+    delay(10); 
+    Serial.println("Switch has been Pressed"); 
+    pos = stepper.currentPosition(); 
+    move = false; 
+    flag = 0; 
+    }
+    Serial.println("Flag");
+    flag = 0; 
+    Serial.println(XA0Flag); 
+  }
+
+  return flag; 
 }
 
 
@@ -641,12 +553,12 @@ void loop() {
  
   GoTo(xsteps, ysteps, zsteps); 
 
-Serial.print("String = ");
-Serial.println(JsonStr); 
-
 // Uncomment this line to run the HyperRail in a loop for a predefined period
-// Loop(xLoopPeriod, yLoopPeriod, zLoopPeriod); 
+ Loop(xLoopPeriod, yLoopPeriod, zLoopPeriod); 
 
+ XA0Flag = checkInts(XA0Flag, X0ABump, X0A_pos, stepperX, xMove);
+
+ Serial.println(XA0Flag); 
 
   // if rail is not calibrated then calibrate it 
 //  if(!calibrated)
