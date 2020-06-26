@@ -195,6 +195,7 @@ void backwardZ() {
  {
    Serial.println("A0");
    XA0Flag = 1; 
+   xMove = 0; 
    delay(10);
  }
 
