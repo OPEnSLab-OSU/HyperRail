@@ -15,7 +15,7 @@ Arduino arduino;
 /****************************************
 *****Declare variable for functions******
 ****************************************/
-String port = "COM15";
+String port = "COM16";
 String X_Axis_Length = ""; 
 String Y_Axis_Length = "";
 String Z_Axis_Length = ""; 

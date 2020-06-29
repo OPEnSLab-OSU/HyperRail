@@ -53,9 +53,9 @@
  bool yMove = true; 
  bool zMove = true; 
 
- int xLoopPeriod = 10000; 
- int yLoopPeriod = 500; 
- int zLoopPeriod = 500; 
+ int xLoopPeriod = 8000; 
+ int yLoopPeriod = 8000; 
+ int zLoopPeriod = 4000; 
 
  String JsonStr;   // Define a string object to receive JSON data from Processing GUI
 
@@ -151,13 +151,13 @@ void forwardXB() {
 
 void forwardX()
 {
-  onestep(FORWARD, STEPXA, DIRXA);
+  onestep(BACKWARD, STEPXA, DIRXA);
   onestep(FORWARD, STEPXB, DIRXB);
 }
 
 void backwardX()
 {
-  onestep(BACKWARD, STEPXA, DIRXA);
+  onestep(FORWARD, STEPXA, DIRXA);
   onestep(BACKWARD, STEPXB, DIRXB);
 }
 
