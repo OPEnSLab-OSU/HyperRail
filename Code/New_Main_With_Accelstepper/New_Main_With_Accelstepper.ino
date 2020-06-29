@@ -49,16 +49,12 @@
  #define FORWARD 0
  #define BACKWARD 1
 
- bool xMove = true; 
- bool yMove = true; 
- bool zMove = true; 
-
- int xLoopPeriod = 8000; 
- int yLoopPeriod = 8000; 
- int zLoopPeriod = 4000; 
+ volatile int xAMove = 1; 
+ volatile int xBMove = 1; 
+ volatile int yMove = 1; 
+ volatile int zMove = 1; 
 
  String JsonStr;   // Define a string object to receive JSON data from Processing GUI
-
 
  // Length of X,Y,Z axis in meters
  int X_Location = 0; 
@@ -71,6 +67,17 @@
  // variables to hold the spool radius for X, Y, Z axis;
  int Spool_Rad_X = 32; 
  int Spool_Rad_YZ = 32; 
+
+ // Variables to select what the rail does
+ int Goto = 0; 
+ int looP = 0; 
+ int Reset = 0; 
+ int calibrate = 0; 
+
+ // Variable for looping period in loop mode
+ int periodX;
+ int periodY; 
+ int periodZ; 
 
  // Position of the back end of the rail set by the calibration function
  int X0A_pos; 
@@ -88,16 +95,16 @@
 
  // Make flags for the interrupts 
  volatile int XA0Flag = 0; 
- bool XmaxAFlag = false; 
- bool X0BFlag = false; 
- bool XmaxBFlag = false; 
- bool Y0Flag = false; 
- bool YMAXFlag = false; 
- bool Z0Flag = false; 
- bool ZMAXFlag = false; 
+ volatile int XmaxAFlag = 0; 
+ volatile int X0BFlag = 0; 
+ volatile int XmaxBFlag = 0; 
+ volatile int Y0Flag = 0; 
+ volatile int YMAXFlag = 0; 
+ volatile int Z0Flag = 0; 
+ volatile int ZMAXFlag = 0; 
 
  // Calibration Speeds
- int XCalSpeed = 600; 
+ int XCalSpeed = 300; 
  int YZCalSpeed = 200; 
 
  // Define the max stepper speed in Steps/second
@@ -193,57 +200,63 @@ void backwardZ() {
 
   void X0A_ISR()
  {
-   Serial.println("A0");
+   //Serial.println("A0");
    XA0Flag = 1; 
-   xMove = 0; 
-   delay(10);
+   xAMove = 0; 
  }
 
 
 
  void Y0_ISR()
  {
-   Y0Flag = true;
+   Y0Flag = 1;
+   yMove = 0; 
  }
 
  void X0B_ISR()
  {
-   X0BFlag = true; 
+   X0BFlag = 1; 
+   xBMove = 0; 
  }
 
 
 // ISR for Z0 
 void Z0_ISR()
 {
-  Z0Flag = true; 
+  Z0Flag = 1; 
+  zMove = 0;
 }
 
 
 
 void XMaxA_ISR()
 {
-  XmaxAFlag = true; 
+  XmaxAFlag = 1; 
+  xAMove = 0;
 }
 
 
 
 void YMax_ISR()
 {
-  YMAXFlag = true; 
+  YMAXFlag = 1; 
+  yMove = 0;
 }
 
 
 
 void XMaxB_ISR()
 {
-  XmaxBFlag = true; 
+  XmaxBFlag = 1; 
+  xBMove = 0;
 }
 
 
 
 void ZMax_ISR()
 {
-  ZMAXFlag = true; 
+  ZMAXFlag = 1; 
+  zMove = 0;
 }
  
 
@@ -343,7 +356,7 @@ int mmToSteps(double mm, int steps_per_revolution, double belt_radius, int micro
 void GetData()
 {
   // create JSON object
-  DynamicJsonDocument doc(200); 
+  DynamicJsonDocument doc(400); 
 
   // receive Json String From Processing   
   JsonStr = Serial.readString(); 
@@ -371,6 +384,16 @@ void GetData()
   MaxSpeed = doc["Velocity"]; 
   Spool_Rad_X = doc["SpoolRadX"]; 
   Spool_Rad_YZ = doc["SpoolRadYZ"]; 
+  Goto = doc["GoTo"]; 
+
+  looP = doc["Loop"]; 
+  periodX = doc["periodX"]; 
+  periodY = doc["periodY"]; 
+  periodZ = doc["periodZ"]; 
+
+  Reset = doc["Reset"]; 
+
+  calibrate = doc["Calibrate"]; 
 
   // Set Max Speed For all Steppers 
   stepperX.setMaxSpeed(MaxSpeed); 
@@ -395,13 +418,13 @@ void GoTo(int x, int y, int z)
   int i = 1, j = 1, k = 1; 
   while(i == 1 or j == 1 or k == 1)
   {
-    if(XA0Flag or XmaxAFlag or X0BFlag or XmaxBFlag or Y0Flag or YMAXFlag or Z0Flag or ZMAXFlag)
+    /* if(XA0Flag or XmaxAFlag or X0BFlag or XmaxBFlag or Y0Flag or YMAXFlag or Z0Flag or ZMAXFlag)
     {
       //Serial.println("Break");
       break;
-    }
+    } */
 
-    if(xMove)
+    if(xAMove and xBMove)
     i =  stepperX.run(); 
 
     if(yMove)
@@ -423,6 +446,7 @@ void Loop(int xperiod, int yperiod, int zperiod)
    //Serial.println("return");
    return;
   }
+
   GoTo(xperiod, yperiod, zperiod); 
 
   xperiod = -xperiod; 
@@ -432,85 +456,159 @@ void Loop(int xperiod, int yperiod, int zperiod)
 }
 
 
+
+
 // Function to calibrate all axis and set MAX and 
 // 0 points for all axis individually 
 void Calibrate()
 {
   
+    // Loop while not all of the switches have been pressed
     while(!XA0Flag or !XmaxAFlag or !X0BFlag or !XmaxBFlag or !Y0Flag or !YMAXFlag or !Z0Flag or !ZMAXFlag)
     {
 
-      // XA 0 point calibration 
+      // XA 0 point calibration runs while the 0 switch has not been triggered
       if(!XA0Flag)
       {   
       stepperX.setSpeed(-XCalSpeed); 
       stepperX.runSpeed(); 
       }
 
-      // XB 0 point calibration 
+      // XB 0 point calibration runs while the 0 switch has not been triggered
       if(!X0BFlag)
       {
         stepperX.setSpeed(-XCalSpeed); 
         stepperX.runSpeed(); 
       }
 
-     // Y 0 point calibration 
+      // If both X axis switches have been triggered then 
+      // set the 0 position and allow the axis to move again.  
+      if(XA0Flag and X0BFlag)
+      {
+          X0_pos = stepperX.currentPosition() + 50; 
+          xAMove = 1; 
+          xBMove = 1; 
+      }
+
+     // Y 0 point calibration runs while Y0 switch has not been triggered
       if(!Y0Flag)
       {
         stepperY.setSpeed(-YZCalSpeed);
         stepperY.runSpeed();
-       }
+      }
 
+      // When switch is triggered set 0 position and allow the Y axis to move again
+      if(Y0Flag)
+      {
+        Y0_pos = stepperY.currentPosition() + 50; 
+        yMove = 1; 
+      }
 
-      // Z 0 point calibration 
+      // Z 0 point calibration runs while the Z0 flag has not been triggered 
       if(!Z0Flag)
       {
        stepperZ.setSpeed(-YZCalSpeed); 
        stepperZ.runSpeed(); 
       }
 
-     // XA Max Point calibration 
-      if(XA0Flag and !XmaxAFlag)
+      // When Z0 flag is triggered set 0 position and allow the Z axis to move again
+      if(Z0Flag)
+      {
+        Z0_pos = stepperZ.currentPosition() + 50; 
+        zMove = 1; 
+      }
+
+     // XA Max Point calibration runs after X0 switches have been triggered 
+     // and while Maximum flag has not been triggered
+      if(XA0Flag and X0BFlag and !XmaxAFlag)
       {
         stepperX.setSpeed(XCalSpeed); 
         stepperX.runSpeed();
       }
 
-      // XB Max Point Calibration 
-      if(X0BFlag and !XmaxBFlag)
+      // XB Max Point Calibration runs after X0 switches have been triggered 
+     // and while Maximum flag has not been triggered
+      if(X0BFlag and XA0Flag and !XmaxBFlag)
       {
         stepperX.setSpeed(XCalSpeed); 
         stepperX.runSpeed();
       }
 
-      // Y Max Point Calibration 
+
+      // When both X motors reach the maximum switches, set Max position 
+      // and allow the x motors to move again
+      if(XmaxAFlag and XmaxBFlag)
+      {
+          Xmax_pos = stepperX.currentPosition() - 50; 
+          xAMove = 1; 
+          xBMove = 1; 
+      }
+
+      // Y Max Point Calibration runs while the Y0 switch 
+      // has been triggered and before the Ymax switch is triggered
       if(Y0Flag and !YMAXFlag)
       {
         stepperY.setSpeed(YZCalSpeed); 
         stepperY.runSpeed();
       }
 
-      // Z max point calibration
+      // When Ymax switch is triggered, set max position 
+      // and allow the Y motor to move again
+      if(YMAXFlag)
+      {
+        Ymax_pos = stepperY.currentPosition() - 50; 
+        yMove = 1; 
+      }
+
+      // Z max point calibration runs after Z0 switch has been pressed 
+      // and before the Zmax switch is triggered
       if(Z0Flag and !ZMAXFlag)
       {
-
         stepperZ.setSpeed(YZCalSpeed); 
         stepperZ.runSpeed();
       }
 
+      // When Zmax switch is triggered set max position and 
+      // allow the Z motor to move again
+      if(ZMAXFlag)
+      {
+        Zmax_pos = stepperZ.currentPosition() - 50; 
+        zMove = 1; 
+      }
+
     }
 
-    XA0Flag = 1; 
-    X0BFlag = false; 
-    XmaxAFlag = false; 
-    XmaxBFlag = false; 
-    Y0Flag = false; 
-    YMAXFlag = false; 
-    Z0Flag = false; 
-    ZMAXFlag = false; 
+  // make motors move off of the max bump switch
+  stepperX.moveTo(Xmax_pos); 
+  stepperY.moveTo(Ymax_pos);
+  stepperZ.moveTo(Zmax_pos);
+
+  // This is nessecary because the GoTo function will 
+  // not run while the flag is triggered
+
+  int i = 1, j = 1, k = 1; 
+  while(i == 1 or j == 1 or k == 1)
+  {
+    i =  stepperX.run(); 
+    j =  stepperY.run();
+    k =  stepperZ.run();
+  }
+
+    // Reset all of the bump switch flags
+    XA0Flag = 0; 
+    X0BFlag = 0; 
+    XmaxAFlag = 0; 
+    XmaxBFlag = 0; 
+    Y0Flag = 0; 
+    YMAXFlag = 0; 
+    Z0Flag = 0; 
+    ZMAXFlag = 0; 
 
     // set calibration flag 
     calibrated = true; 
+
+    // Move motors to the 0 position
+    GoTo(X0_pos, Y0_pos, Z0_pos); 
    
 }
 
@@ -552,17 +650,19 @@ void loop() {
   int ysteps = mmToSteps(Y_Location, YZ_SPR, Spool_Rad_YZ, YZ_Micro );
   int zsteps = mmToSteps(Z_Location, YZ_SPR, Spool_Rad_YZ, YZ_Micro );
  
+ if(Goto == 1)
   GoTo(xsteps, ysteps, zsteps); 
 
-// Uncomment this line to run the HyperRail in a loop for a predefined period
- Loop(xLoopPeriod, yLoopPeriod, zLoopPeriod); 
+ if(looP == 1)
+  Loop(periodX, periodY, periodZ); 
 
- XA0Flag = checkInts(XA0Flag, X0ABump, X0A_pos, stepperX, xMove);
+ if(Reset == 1 and calibrated == true)
+  GoTo(X0_pos, Y0_pos, Z0_pos); 
 
- Serial.println(XA0Flag); 
+ //XA0Flag = checkInts(XA0Flag, X0ABump, X0A_pos, stepperX, xMove); 
 
   // if rail is not calibrated then calibrate it 
-//  if(!calibrated)
-//    Calibrate(); 
+ if(calibrate == 1)
+   Calibrate(); 
 
  }
