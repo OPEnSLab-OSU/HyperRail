@@ -15,7 +15,7 @@ Arduino arduino;
 /****************************************
 *****Declare variable for functions******
 ****************************************/
-String port = "COM10";
+String port = "COM15";
 
 
 String GoTo = "0"; 
@@ -55,6 +55,7 @@ void setup(){
     .setFont(font)
     .setFocus(  true)
     .setColor(color(240, 255, 255))
+    .setText("0")
     ;
   
  //*****************Y length Input Box ***********
@@ -66,6 +67,7 @@ void setup(){
     .setFont(font)
     .setFocus(true)
     .setColor(color(240, 255, 255))
+    .setText("0")
     ;
     
      //*****************Z-Axis Length Input Box ***********
@@ -75,6 +77,7 @@ void setup(){
     .setFont(font)
     .setFocus(true)
     .setColor(color(240, 255, 255))
+    .setText("0")
     ;
     
     //*****************Velocity Input Box ***********
@@ -84,6 +87,7 @@ void setup(){
       .setFont(font)
       .setFocus(true)
       .setColor(color(240, 255, 255))
+      .setText("2500")
       ;
     
     //*****************X Spool Radius Input Box ***********
@@ -93,6 +97,7 @@ void setup(){
       .setFont(font)
       .setFocus(true)
       .setColor(color(240, 255, 255))
+      .setText("32")
       ; 
       
     //*****************Y,Z Spool Radius Input Box ***********
@@ -102,6 +107,7 @@ void setup(){
       .setFont(font)
       .setFocus(true)
       .setColor(color(240, 255, 255))
+      .setText("32")
       ; 
 
     //***************** X-Period Input Box ***********
@@ -111,6 +117,7 @@ void setup(){
       .setFont(font)
       .setFocus(true)
       .setColor(color(240, 255, 255))
+      .setText("0")
       ;     
       
     //*****************Y-Period Input Box ***********
@@ -120,6 +127,7 @@ void setup(){
       .setFont(font)
       .setFocus(true)
       .setColor(color(240, 255, 255))
+      .setText("0")
       ;   
       
     //***************** Z-Period Input Box ***********
@@ -129,6 +137,7 @@ void setup(){
       .setFont(font)
       .setFocus(true)
       .setColor(color(240, 255, 255))
+      .setText("0")
       ; 
     
     HyperGUI.addBang("Submit").setPosition(700, 500).setSize(100, 50);    
