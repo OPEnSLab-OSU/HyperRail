@@ -1,53 +1,4 @@
- // File: HyperRail_Main_New.ino
- // Name: Liam Duncan 
- //        Made for OPEnS Lab 
- // Date: 1/21/2020
- // Description: Code to Drive the HyperRail, Interface with Processing GUI, and Receive data from eGreenhouse
-
- #include <ArduinoJson.h>
- #include <AccelStepper.h>
-
- // define the steps per revolution for X,Y and Z motors 
- #define X_SPR 1700
- #define YZ_SPR 400 
-
- // Use these variables to define your microstep values for the motors 
- // When there is nothing connected to the big easy driver pins the driver defaults to 1/16 step 
- #define YZ_Micro 1 // 1/16 step 
- #define X_Micro 1  // full step 
-
-
- // define all interrupt pins for bump switches
- int X0ABump = 1;
- int X0BBump = 14;
-
- int XMaxABump = 0;
- int XMaxBBump = 6;
-
- int Y0Bump = 18;
- int YMaxBump = 20;
-
- int Z0Bump = 21;
- int ZMaxBump = 15;
-
- // Define Motor Pins X A,B
- #define STEPXA 10
- #define DIRXA 11
-
- #define STEPXB 12
- #define DIRXB 13
-
- // Define Motor Pins for Y 
- #define STEPY 9
- #define DIRY 16
-
- // Define Motor Pins for Z
- #define STEPZ 17
- #define DIRZ 19
-
- // foreward and backward definitions
- #define FORWARD 0
- #define BACKWARD 1
+#include "HyperRail_Driver.h" 
 
  volatile int xAMove = 1; 
  volatile int xBMove = 1; 
@@ -111,21 +62,34 @@
  int MaxSpeed = 2500; 
 
  // calibration has happened or not
- bool calibrated = false; 
+bool calibrated = false; 
 
- // ensure that the interrupts do not trigger when switches are released 
- int Y0_Count = 0; 
- int XA0_Count = 0; 
- int XB0_Count = 0; 
- int Z0_Count = 0; 
+  // define all interrupt pins for bump switches
+ int X0ABump = 1;
+ int X0BBump = 14;
 
- int YMAX_Count = 0;
- int XAMAX_Count = 0;
- int XBMAX_Count = 0; 
- int ZMAX_Count = 0; 
+ int XMaxABump = 0;
+ int XMaxBBump = 6;
+
+ int Y0Bump = 18;
+ int YMaxBump = 20;
+
+ int Z0Bump = 21;
+ int ZMaxBump = 15;
+
+ // construct Motor objects 
+   AccelStepper stepperX(forwardX, backwardX);
+   AccelStepper stepperY(forwardY, backwardY);
+   AccelStepper stepperZ(forwardZ, backwardZ); 
 
 
-// One stepper Motor Step 
+/*********************************************************
+ * Function: onestep 
+ * Description: Function to control a single motor step 
+ * Parameters: Direction, Stepper Pin, Direction Pin 
+ * Pre-Conditions: Functiion is called to step motor  
+ * Post-Conditions: Motor moves a step in the appropriate direction 
+ * *******************************************************/
 void onestep(int dir, int stepPin, int dirPin) {
 
 // set the direction to turn
@@ -142,8 +106,15 @@ void onestep(int dir, int stepPin, int dirPin) {
    delayMicroseconds(60); 
 }
 
-// Functions for Stepper Motor Stepping 
 
+/*********************************************************
+ * Functions: Forward/Backward Motor 
+ * Description: Function to abstract motor stepping for each motor
+ *              (All functions below are essentially the same)
+ * Parameters: None
+ * Pre-Conditions: Functiion is called to step motor  
+ * Post-Conditions: Motor moves a step in the appropriate direction 
+ * *******************************************************/
 void forwardXA() {
   onestep(FORWARD, STEPXA, DIRXA);
 }
@@ -190,15 +161,15 @@ void backwardZ() {
 }
 
 
-   // construct Motor objects 
-   AccelStepper stepperX(forwardX, backwardX);
-   AccelStepper stepperY(forwardY, backwardY);
-   AccelStepper stepperZ(forwardZ, backwardZ); 
-
-
- // put interrupt functions here 
-
-  void X0A_ISR()
+/*********************************************************
+ * Function: Interrupt Functions  
+ * Description: Functions to be triggered when Bump Switches are triggered  
+ *              (Functions Below are all the same just for different Bump Switches)
+ * Parameters: None
+ * Pre-Conditions: Bump Switch is triggered 
+ * Post-Conditions: Flag is tripped, motor movement will cease 
+ * *******************************************************/
+ void X0A_ISR()
  {
    //delay(5); 
    /* if(digitalRead(X0ABump) == LOW)
@@ -208,7 +179,6 @@ void backwardZ() {
    //xAMove = 0; 
  // }
  }
-
 
 
  void Y0_ISR()
@@ -249,7 +219,6 @@ void Z0_ISR()
 }
 
 
-
 void XMaxA_ISR()
 {
   //delay(5); 
@@ -260,7 +229,6 @@ void XMaxA_ISR()
   xAMove = 0;
    }
 }
-
 
 
 void YMax_ISR()
@@ -275,7 +243,6 @@ void YMax_ISR()
 }
 
 
-
 void XMaxB_ISR()
 { 
  // delay(5); 
@@ -288,7 +255,6 @@ void XMaxB_ISR()
 }
 
 
-
 void ZMax_ISR()
 {
   //delay(5); 
@@ -299,93 +265,15 @@ void ZMax_ISR()
   zMove = 0;
    }
 }
- 
 
 
-void setup() {
-
-  Serial.begin(9600); 
-
-  Serial.print("Arduino is Ready!"); 
-
-  // set up interrupts and pins 
-
-  // XA Bump Switches 
-  pinMode(X0ABump, INPUT_PULLUP); 
-  pinMode(XMaxABump, INPUT_PULLUP); 
-
-  // XB Bump Switches 
-  pinMode(X0BBump, INPUT_PULLUP); 
-  pinMode(XMaxBBump, INPUT_PULLUP); 
-
-  // Y axis Bump Switches 
-  pinMode(Y0Bump, INPUT_PULLUP); 
-  pinMode(YMaxBump, INPUT_PULLUP); 
-
-  // Z Axis Bump Switches 
-  pinMode(Z0Bump, INPUT_PULLUP); 
-  pinMode(ZMaxBump, INPUT_PULLUP);  
-
-  // XA Motor Control Pins
-  pinMode(STEPXA, OUTPUT); 
-  pinMode(DIRXA, OUTPUT); 
-
-  // XB Motor Control Pins 
-  pinMode(STEPXB, OUTPUT); 
-  pinMode(DIRXB, OUTPUT); 
-
-  // Y Motor Control Pins
-  pinMode(STEPY, OUTPUT); 
-  pinMode(DIRY, OUTPUT); 
-
-  // Z Motor Control Pins
-  pinMode(STEPZ, OUTPUT); 
-  pinMode(DIRZ, OUTPUT); 
-
-  // Set Max Speed For all Steppers 
-  stepperX.setMaxSpeed(MaxSpeed); 
-  stepperY.setMaxSpeed(MaxSpeed/4); 
-  stepperZ.setMaxSpeed(MaxSpeed/4); 
-
-  // Set the Acceleration for the stepper motors
-  stepperX.setAcceleration(40); 
-  stepperY.setAcceleration(80);
-  stepperZ.setAcceleration(40);
-
-
-  
- //  initialize all interrupts for Bump Switches 
-
- //attachInterrupt(digitalPinToInterrupt(X0ABump), X0A_ISR, FALLING);
-
- /* attachInterrupt(digitalPinToInterrupt(X0BBump), X0B_ISR, FALLING);
-
- attachInterrupt(digitalPinToInterrupt(XMaxABump), XMaxA_ISR, FALLING);
-
- attachInterrupt(digitalPinToInterrupt(XMaxBBump), XMaxB_ISR, FALLING);
-
- attachInterrupt(digitalPinToInterrupt(Y0Bump), Y0_ISR, FALLING);
-
- attachInterrupt(digitalPinToInterrupt(YMaxBump), YMax_ISR, FALLING);
-
- attachInterrupt(digitalPinToInterrupt(Z0Bump), Z0_ISR, FALLING);
-
- attachInterrupt(digitalPinToInterrupt(ZMaxBump), ZMax_ISR, FALLING); */
-
-
-  X0AFlag = 0; 
- XmaxAFlag = 0; 
-  X0BFlag = 0; 
-  XmaxBFlag = 0; 
-  Y0Flag = 0; 
-  YMAXFlag = 0; 
-  Z0Flag = 0; 
-  ZMAXFlag = 0;
- 
-
-}
-
-
+/*********************************************************
+ * Function: mmToSteps 
+ * Description: Function to convert milimeters to steps for motors  
+ * Parameters: mm, Motor steps per revolution, Motor belt radius, microstepping option
+ * Pre-Conditions: Function is called to convert user input to steps 
+ * Post-Conditions: metric unit is converted to steps for motors to use
+ * *******************************************************/
 int mmToSteps(double mm, int steps_per_revolution, double belt_radius, int micro) {
 
         // Serial.print("mm = ");
@@ -401,9 +289,14 @@ int mmToSteps(double mm, int steps_per_revolution, double belt_radius, int micro
     }
 
 
-// Function Gets data from serial port GUI, 
-// turns it into a JSON object, and sets int  
-// values 
+
+/*********************************************************
+ * Function: GetData 
+ * Description: Function to Get data from the serial port and store it in variables 
+ * Parameters: none
+ * Pre-Conditions: Function is called when serial is available
+ * Post-Conditions: values from serial are stored in their respective variables 
+ * *******************************************************/
 void GetData()
 {
   // create JSON object
@@ -455,9 +348,13 @@ void GetData()
   return; 
 }
 
-
-
-
+/*********************************************************
+ * Function: GoTo 
+ * Description: Function moves stepper motors to an X,Y,Z Coordinate
+ * Parameters: x, y, z
+ * Pre-Conditions: Function is called to move motors 
+ * Post-Conditions: Motors are moved to the correct coordinates
+ * *******************************************************/
 void GoTo(int x, int y, int z)
 {
 
@@ -484,6 +381,13 @@ void GoTo(int x, int y, int z)
 }
 
 
+/*********************************************************
+ * Function: Loop 
+ * Description: Function runs motors in a loop based on a period  
+ * Parameters: none 
+ * Pre-Conditions: Function is called run the motors in an infinite loop  
+ * Post-Conditions: motors move in an infinite loop until directed otherwise
+ * *******************************************************/
 void Loop()
 {
   
@@ -493,8 +397,10 @@ void Loop()
   //  return;
   // }
 
+  // Set the location for the motors to go to 
   GoTo(periodX, periodY, periodZ); 
 
+  //  Reverse the direction 
   periodX = -periodX; 
   periodY = -periodY; 
   periodZ = -periodZ; 
@@ -502,10 +408,14 @@ void Loop()
 }
 
 
-
-
-// Function to calibrate all axis and set MAX and 
-// 0 points for all axis individually 
+/*********************************************************
+ * Function: Calibrate 
+ * Description: Function runs motors to their zero position, marks the position then runs 
+ *              them to their max position and marks the position. 
+ * Parameters: none 
+ * Pre-Conditions: Function is called through processing  
+ * Post-Conditions: rail is calibrated 
+ * *******************************************************/
 void Calibrate()
   {
     // Loop while not all of the switches have been pressed
@@ -686,10 +596,18 @@ void Calibrate()
     // Move motors to the 0 position
     GoTo(X0_pos, Y0_pos, Z0_pos); */
    
-}}
+  } 
+
+}
 
 
-// Function to Check the validity of the interrupts and act accordingly
+/*********************************************************
+ * Function: checkInts 
+ * Description: Function to check the validity of interrupts 
+ * Parameters: none
+ * Pre-Conditions: Function will check to see if interrupt is valid
+ * Post-Conditions: Interrupt flag is set to the correct value
+ * *******************************************************/
 void checkInts()
 {
   if(X0AFlag == 1)
@@ -701,49 +619,3 @@ void checkInts()
       X0AFlag == 0;    
   }
 }
-
-
-
-// main Loop 
-void loop() {
-
-  // Read Json Object from Processing
-  if(Serial.available()) 
-    GetData();   
-
-// Convert Number of mm to steps for the GoTo Function
-  int xsteps = mmToSteps(X_Location, X_SPR, Spool_Rad_X, X_Micro );
-  int ysteps = mmToSteps(Y_Location, YZ_SPR, Spool_Rad_YZ, YZ_Micro );
-  int zsteps = mmToSteps(Z_Location, YZ_SPR, Spool_Rad_YZ, YZ_Micro );
-  
-/*   Serial.print("GoTo = ");
-  Serial.println(Goto); 
-  Serial.print("Reset = "); 
-  Serial.println(Reset); 
-  Serial.print("loop = "); 
-  Serial.println(looP); 
-  Serial.print("Calibrate = ");
-  Serial.println(calibrate); */
-
-
-  // if(Goto == 1)
-   GoTo(xsteps, ysteps, zsteps); 
-
- //if(looP == 1)
-  // Loop(); 
-
-//  if(Reset == 1 and calibrated == true)
-//   GoTo(X0_pos, Y0_pos, Z0_pos);   
-
-  // Serial.print(xAMove);
-
-  // checkInts(); 
-
-
- // X0AFlag = checkInts(X0AFlag, X0ABump, X0A_pos, stepperX, xMove);
-
-  // if rail is not calibrated then calibrate it 
-// if(calibrate == 1)
-  // Calibrate(); 
-
- }

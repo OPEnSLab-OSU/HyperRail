@@ -83,7 +83,7 @@ void setup() {
 
  attachInterrupt(digitalPinToInterrupt(A_Pin), A_ISR, FALLING);
 
- attachInterrupt(digitalPinToInterrupt(B_Pin), B_ISR, FALLING);
+ /* attachInterrupt(digitalPinToInterrupt(B_Pin), B_ISR, FALLING);
 
  attachInterrupt(digitalPinToInterrupt(C_Pin), C_ISR, FALLING);
 
@@ -96,7 +96,7 @@ void setup() {
  attachInterrupt(digitalPinToInterrupt(G_Pin), G_ISR, FALLING);
 
  attachInterrupt(digitalPinToInterrupt(H_Pin), H_ISR, FALLING);
-
+ */
 }
 
 void loop() {
@@ -112,7 +112,7 @@ void loop() {
     A_Flag = false; 
   }
 
-  if(B_Flag == true) 
+  /* if(B_Flag == true) 
   {
     delay(5);
 
@@ -177,7 +177,7 @@ void loop() {
     Serial.println("Switch H has been Pressed"); 
     
     H_Flag = false; 
-  }
+  } */
 
   //Serial.println("Test"); 
 
